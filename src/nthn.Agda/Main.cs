@@ -1,4 +1,5 @@
 ﻿using ManagedCommon;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Wox.Plugin;
@@ -8,6 +9,7 @@ namespace nthn.Agda
     public class Main : IPlugin
     {
         private string IconPath { get; set; }
+        private AgdaLookup lookup = new AgdaLookup();
 
         private PluginInitContext Context { get; set; }
         public string Name => "Agda";
@@ -18,20 +20,31 @@ namespace nthn.Agda
 
         public List<Result> Query(Query query)
         {
-            return new List<Result>
+            string q = query.RawQuery.Substring(1).Trim();
+            
+            if (lookup.keyValuePairs.ContainsKey(q))
             {
-                new Result
+                string value = lookup.keyValuePairs.GetValueOrDefault(q, "");
+                List<Result> results = new List<Result>();
+                for (int i = 0; i < value.Length; i++)
                 {
-                    Title = "Match found!",
-                    SubTitle = "Copy this symbol to the clipboard",
-                    IcoPath = IconPath,
-                    Action = e =>
-                    {
-                        Clipboard.SetText("≡");
-                        return true;
-                    },
+                    results.Add(
+                        new Result
+                        {
+                            Title = value[i].ToString(),
+                            SubTitle = "Copy this symbol to the clipboard",
+                            IcoPath = IconPath,
+                            Action = e =>
+                            {
+                                Clipboard.SetText(value.ToString());
+                                return true;
+                            },
+                        }
+                    ); ;
                 }
-            };
+                return results;
+            }
+            return new List<Result> { };
         }
 
         public void Init(PluginInitContext context)
