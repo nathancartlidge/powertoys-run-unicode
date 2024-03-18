@@ -25,13 +25,14 @@ namespace nthn.Agda
             if (lookup.keyValuePairs.ContainsKey(q))
             {
                 string value = lookup.keyValuePairs.GetValueOrDefault(q, "");
+                string[] candidates = value.Split(" ");
                 List<Result> results = new List<Result>();
-                for (int i = 0; i < value.Length; i++)
+                for (int i = 0; i < candidates.Length; i++)
                 {
                     results.Add(
                         new Result
                         {
-                            Title = value[i].ToString(),
+                            Title = candidates[i].ToString(),
                             SubTitle = "Copy this symbol to the clipboard",
                             IcoPath = IconPath,
                             Action = e =>

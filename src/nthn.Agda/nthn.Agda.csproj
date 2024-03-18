@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LanguageVersion>latest</LanguageVersion>
 	  <UseWPF>true</UseWPF>
 	  <UseWindowsForms>true</UseWindowsForms>
-	  <Platforms>AnyCPU;x64</Platforms>
+	  <Platforms>x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
