@@ -2577,7 +2577,7 @@ namespace nthn.Agda
         
         public string[] ExactMatches(string key)
         {
-            if (keyValuePairs.ContainsKey(key))
+            if (KeyValuePairs.ContainsKey(key))
             {
                 string value = KeyValuePairs.GetValueOrDefault(key, "");
                 if (value != "")
