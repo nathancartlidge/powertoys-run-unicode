@@ -1,0 +1,62 @@
+name: Build Package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [ x64 ]
+    
+    runs-on: windows-latest
+
+    env:
+      OUTPUT_PATH: src\nthn.Agda\bin # why does it need this?
+      PLUGIN_NAME: AgdaInput
+      DOTNET_VER: net8.0-windows
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Read Version
+      run: |
+        echo "PLUGIN_VERSION=$(git describe --tags --dirty --candidates 1 --always)" >> $env:GITHUB_ENV
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Execute unit tests
+      run: dotnet test
+      working-directory: src
+
+    - name: Restore the application
+      run: dotnet restore
+      working-directory: src
+
+    - name: Build the application
+      run: dotnet build --configuration RELEASE /p:Platform=${{matrix.platform}} /p:EnableWindowsTargeting=true
+      working-directory: src
+
+    - name: Prepare the artifact
+      run: |
+        Remove-Item -Path ${{ env.OUTPUT_PATH }}\* -Recurse -Include *.xml, *.pdb, PowerToys.*, Wox.*
+        Compress-Archive -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\${{ env.DOTNET_VER }} -DestinationPath "${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip"
+
+    - name: Upload the artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}
+        path: "**/*.zip"
+
+    - name: Debug with tmate on failure
+      if: ${{ failure() }}
+      uses: mxschmitt/action-tmate@v3
