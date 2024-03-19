@@ -6,5 +6,6 @@
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;MSTest::1D088EF7-057C-4EE3-9059-45B49D03CBEB::net8.0-windows::nthn.Agda.Tests.AgdaLookupTest.TextExact&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;MSTest::1D088EF7-057C-4EE3-9059-45B49D03CBEB::net8.0-windows::nthn.Agda.Tests.AgdaLookupTest.TestNumber&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;MSTest::1D088EF7-057C-4EE3-9059-45B49D03CBEB::net8.0-windows::nthn.Agda.Tests.AgdaLookupTest.TestPartial&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
