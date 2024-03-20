@@ -1,15 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices.JavaScript;
 using System.Text.RegularExpressions;
 
 namespace nthn.Agda
 {
     public class AgdaLookup
     {
-        public Dictionary<string, string> KeyValuePairs = new Dictionary<string, string>()
+        public static Dictionary<string, string> KeyValuePairs = new Dictionary<string, string>()
         {
-        };
+        }
         
-        public string[] ExactMatches(string key)
+        public static List<string> ExactMatches(string key)
         {
             if (KeyValuePairs.ContainsKey(key))
             {
@@ -17,7 +20,7 @@ namespace nthn.Agda
                 if (value != "")
                 {
                     string[] candidates = value.Split(" ");
-                    return candidates;
+                    return candidates.ToList();
                 }
             }
 
@@ -26,24 +29,24 @@ namespace nthn.Agda
 
         private Regex _numberMatcher = new Regex(@"^(.*?)(\d+)$");
         
-        public string NumberMatch(string keyAndIndex)
+        public (string, int, string) NumberMatch(string keyAndIndex)
         {
-            Match match = _numberMatcher.Match(keyAndIndex);
+            var match = _numberMatcher.Match(keyAndIndex);
             if (match.Success)
             {
-                string key = match.Groups[1].Value;
-                int index = int.Parse(match.Groups[2].Value) - 1;
-                string[] matches = ExactMatches(key);
-                if (0 <= index && index < matches.Length)
+                var key = match.Groups[1].Value;
+                var index = int.Parse(match.Groups[2].Value) - 1;
+                var matches = ExactMatches(key);
+                if (0 <= index && index < matches.Count)
                 {
-                    return matches[index];
+                    return (key, index, matches[index]);
                 }
             }
 
-            return null;
+            return (null, -1, null);
         }
-        
-        private List<string> _sortedKeys = KeyValuePairs.Keys.ToList().Order(StringComparer.Ordinal).ToList();
+
+        private readonly List<string> _sortedKeys = KeyValuePairs.Keys.ToList().Order(StringComparer.Ordinal).ToList();
 
         public (List<char>, List<string>) PartialMatch(string key)
         {
