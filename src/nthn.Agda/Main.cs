@@ -16,6 +16,7 @@ namespace nthn.Agda
         public string Name => "Agda";
 
         public string Description => "Agda-style Unicode Input";
+        public int MaxResults => 8;
 
         public static string PluginID => "778f24fc48714097b30303f83d5bed6a";
 
@@ -136,20 +137,62 @@ namespace nthn.Agda
                         prefix:   k + _subscriptNumber(i + 1),
                         choices:  [numberMatch],
                         nextChar: [],
-                        score:    1
+                        score:    0
                     )
                 );
             }
 
-            // Partial Match candidates
-            foreach (var s in partialMatches.OrderBy(it => it.Length).Take(3))
+            // Partial Match candidates (to fill remaining slots)
+            var remainingSlots = int.Max(0, MaxResults - results.Count);
+            if (remainingSlots <= 0) return results; // early stopping
+
+            results.AddRange(
+                collection: partialMatches
+                    .OrderBy(it => it.Length)
+                    .Take(remainingSlots)
+                    .Select(s => MakeResult(
+                        prefix: s,
+                        choices: AgdaLookup.ExactMatches(s),
+                        nextChar: [],
+                        score: partialMatches.Count == 1 ? 0 : -1
+                    )
+                )
+            );
+
+            // Number-indexed alternatives (to fill remaining slots
+            remainingSlots = int.Max(0, MaxResults - results.Count);
+            if (remainingSlots <= 0) return results; // early stopping
+            
+            int jStart;
+            string searchKey;
+            List<string> options;
+
+            // which number should we start from?
+            // - if our search was for a particular number, show subsequent options
+            // - otherwise, start from 1
+            // - if neither of these conditions apply, just return
+            if (numberMatch != null)
+            {
+                options = AgdaLookup.ExactMatches(k)[(i + 1)..];
+                searchKey = k;
+                jStart = i + 1;
+            }
+            else if (exactMatches.Count > 1)
+            {
+                options = exactMatches[1..];
+                searchKey = q;
+                jStart = 1;
+            }
+            else return results;
+            
+            for (var j = 0; j < int.Min(remainingSlots, options.Count); j++)
             {
                 results.Add(
                     item: MakeResult(
-                        prefix:   s,
-                        choices:  AgdaLookup.ExactMatches(s),
+                        prefix:   searchKey + _subscriptNumber(j + jStart + 1),
+                        choices:  [options[j]],
                         nextChar: [],
-                        score:    partialMatches.Count == 1 ? 0 : -1
+                        score:    -1
                     )
                 );
             }
