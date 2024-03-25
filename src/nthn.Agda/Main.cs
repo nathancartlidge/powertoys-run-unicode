@@ -13,7 +13,7 @@ namespace nthn.Agda
         private AgdaLookup _lookup = new AgdaLookup();
 
         private PluginInitContext Context { get; set; }
-        public string Name => "Agda";
+        public string Name => "Agda Input";
 
         public string Description => "Agda-style Unicode Input";
 
