@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [ x64 ]
+        platform: [ x64, AMD64 ]
     
     runs-on: windows-latest
 
@@ -49,13 +49,14 @@ jobs:
     - name: Prepare the artifact
       run: |
         Remove-Item -Path ${{ env.OUTPUT_PATH }}\* -Recurse -Include *.xml, *.pdb, PowerToys.*, Wox.*
+        Move-Item -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\${{ env.DOTNET_VER }} -Destination ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\AgdaInput
         Compress-Archive -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\${{ env.DOTNET_VER }} -DestinationPath "${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip"
 
-    - name: Upload the artifact
-      uses: actions/upload-artifact@v3
+    - name: Upload the artifact(s)
+      uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}
-        path: "**/*.zip"
+        name: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip
+        path: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip
 
     - name: Debug with tmate on failure
       if: ${{ failure() }}
