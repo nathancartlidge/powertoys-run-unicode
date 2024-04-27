@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Printing;
 using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using nthn.Agda;
 
 namespace nthn.Agda.Tests;
 
@@ -74,6 +71,15 @@ public class AgdaLookupTest
         // todo: more tests are still needed to fully exclude the risk of off-by-one cases!
         List<char> nextChars;
         List<string> partialMatches;
+        
+        // qe[d]
+        var exactMatches = AgdaLookup.ExactMatches("qe");
+        (nextChars, partialMatches) = Lookup.PartialMatch("qe");
+        Assert.AreEqual(exactMatches.Count, 0);
+        Assert.AreEqual(nextChars.Count, 1);
+        Assert.AreEqual(nextChars[0], 'd');
+        Assert.AreEqual(partialMatches.Count, 1);
+        Assert.AreEqual(partialMatches[0], "qed");
         
         // G[ABCDEFGHIKLMNOPRSTUXZabcdefghiklmnoprstuxz]
         (nextChars, partialMatches) = Lookup.PartialMatch("G");
