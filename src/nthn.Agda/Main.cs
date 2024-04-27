@@ -24,15 +24,13 @@ namespace nthn.Agda
         {
             var titleStringBuilder = new StringBuilder();
             titleStringBuilder.Append(prefix);
-            if (choices.Count == 0) // we do not have a match {
+            if (choices.Count == 0)
             {
-                // no result, but return a preview anyway
+                // no exact match, but there are options if you keep typing - return a hint
                 return new Result
                 {
                     Title = prefix,
-                    SubTitle = nextChar.Count == 0
-                        ? "No match found"
-                        : "No match found yet - keep typing! " + _arrayToString(nextChar),
+                    SubTitle = "No match found yet - keep typing! " + _arrayToString(nextChar),
                     IcoPath = IconPath,
                     Score = nextChar.Count == 0 ? score - 5 : score - 1,
                     Action = e => false,
@@ -75,7 +73,7 @@ namespace nthn.Agda
         private string _arrayToString(List<char> l, string separator = "")
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("[");
+            sb.Append("[ ");
             
             for (var i = 0; i < l.Count; i++)
             {
@@ -86,7 +84,7 @@ namespace nthn.Agda
                 }
             }
 
-            sb.Append("]");
+            sb.Append(" ]");
             return sb.ToString();
         }
 
@@ -118,15 +116,24 @@ namespace nthn.Agda
             // Exact matching - agda has a key, we provide that key
             var exactMatches = AgdaLookup.ExactMatches(q);
             (List<char> validChars, List<string> partialMatches) = _lookup.PartialMatch(q);
-            
-            results.Add(
-                item: MakeResult(
-                    prefix:   q,
-                    choices:  exactMatches,
-                    nextChar: validChars,
-                    score:    0
-                )
-            );
+
+            // In the case where we have nothing useful to add (e == 0 and p == 0), we should avoid polluting the list
+            //  of results (e == 0 and p == 0)
+            // In the case where there is only one match, there is no point attempting to show the 'No match found yet!'
+            //  line - we know what the match is going to be! This is only the case when there are no exact matches and
+            //  exactly one partial match, so we skip this step if both those conditions are met (e == 0 and p == 1)
+            // These two conditions combine to give e == 0 and p <= 1. By inverting them, we get e != 0 || p > 1
+            if (exactMatches.Count != 0 || partialMatches.Count > 1)
+            {
+                results.Add(
+                    item: MakeResult(
+                        prefix:   q,
+                        choices:  exactMatches,
+                        nextChar: validChars,
+                        score:    0
+                    )
+                );   
+            }
 
             // Number-indexed matching support
             var (k, i, numberMatch) = _lookup.NumberMatch(q);
