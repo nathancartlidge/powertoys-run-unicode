@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <IsPackable>false</IsPackable>
+    <RootNamespace>nthn.Agda.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\nthn.Agda\nthn.Agda.csproj" />
+    <ProjectReference Include="..\Community.PowerToys.Run.Plugin.UnicodeInput\Community.PowerToys.Run.Plugin.UnicodeInput.csproj" />
   </ItemGroup>
-  
 </Project>

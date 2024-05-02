@@ -1,4 +1,4 @@
-# Agda-Input: Unicode character search in PowerToys Run
+# Unicode-Input: Agda-style Unicode character search in PowerToys Run
 
 > [!NOTE]
 > This project is still under active development - as such, while it does technically work in its current form, the
@@ -12,7 +12,7 @@
 > [box drawing characters](https://en.wikipedia.org/wiki/Box-drawing_character#Unicode) saved as a bookmark? Have you
 > ever tried to write digital notes about Agda outside of Emacs? This might just be the plugin for you!
 
-**Agda-Input** is a [PowerToys Run](https://learn.microsoft.com/en-gb/windows/powertoys/run) plugin that emulates the input
+**Unicode-Input** is a [PowerToys Run](https://learn.microsoft.com/en-gb/windows/powertoys/run) plugin that emulates the input
 capabilities of Emacs in [agda-mode](https://agda.readthedocs.io/en/v2.6.4.3/tools/emacs-mode.html#unicode-input).
 
 If you are unfamiliar, this input method allows you to type the Latex form of (almost) any character - this will then be
@@ -44,5 +44,5 @@ also work here!
 
 ## Attribution
 - Initial project structure based upon [ptrun-guid](https://github.com/skttl/ptrun-guid) by `skttl`
-- Github CI pipeline based upon [PowerToys Run: GitKraken](https://github.com/davidegiacometti/PowerToys-Run-GitKraken) 
+- GitHub CI pipeline based upon [PowerToys Run: GitKraken](https://github.com/davidegiacometti/PowerToys-Run-GitKraken) 
   by `davidegiacometti`

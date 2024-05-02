@@ -15,8 +15,8 @@ jobs:
     runs-on: windows-latest
 
     env:
-      OUTPUT_PATH: src\nthn.Agda\bin # why does it need this?
-      PLUGIN_NAME: AgdaInput
+      OUTPUT_PATH: src\Community.PowerToys.Run.Plugin.UnicodeInput\bin # why does it need this?
+      PLUGIN_NAME: UnicodeInput
       DOTNET_VER: net8.0-windows
 
     steps:
@@ -49,8 +49,8 @@ jobs:
     - name: Prepare the artifact
       run: |
         Remove-Item -Path ${{ env.OUTPUT_PATH }}\* -Recurse -Include *.xml, *.pdb, PowerToys.*, Wox.*
-        Move-Item -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\${{ env.DOTNET_VER }} -Destination ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\AgdaInput
-        Compress-Archive -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\AgdaInput -DestinationPath "${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip"
+        Move-Item -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\${{ env.DOTNET_VER }} -Destination ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\UnicodeInput
+        Compress-Archive -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\UnicodeInput -DestinationPath "${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip"
 
     - name: Upload the artifact(s)
       uses: actions/upload-artifact@v4

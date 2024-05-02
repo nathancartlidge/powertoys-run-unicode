@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetName>Community.PowerToys.Run.Plugin.UnicodeInput</TargetName>
     <LanguageVersion>latest</LanguageVersion>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <Platforms>x64</Platforms>
+    <Platforms>x64;ARM64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nthn.Agda", "nthn.Agda\nthn.Agda.csproj", "{288BAC19-8B63-44DA-86E4-8DD6C6BE29D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Community.PowerToys.Run.Plugin.UnicodeInput", "Community.PowerToys.Run.Plugin.UnicodeInput\Community.PowerToys.Run.Plugin.UnicodeInput.csproj", "{288BAC19-8B63-44DA-86E4-8DD6C6BE29D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nthn.Agda.Tests", "nthn.Agda.Tests\nthn.Agda.Tests.csproj", "{1D088EF7-057C-4EE3-9059-45B49D03CBEB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Community.PowerToys.Run.Plugin.UnicodeInput.Tests", "Community.PowerToys.Run.Plugin.UnicodeInput.Tests\Community.PowerToys.Run.Plugin.UnicodeInput.Tests.csproj", "{1D088EF7-057C-4EE3-9059-45B49D03CBEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
