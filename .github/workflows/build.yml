@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   build:
@@ -54,6 +56,11 @@ jobs:
         Remove-Item -Path ${{ env.OUTPUT_PATH }}\* -Recurse -Include *.xml, *.pdb, PowerToys.*, Wox.*
         Move-Item -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\${{ env.DOTNET_VER }} -Destination ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\UnicodeInput
         Compress-Archive -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\UnicodeInput -DestinationPath "${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip"
+
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip
 
     - name: Upload the artifact(s)
       uses: actions/upload-artifact@v4
