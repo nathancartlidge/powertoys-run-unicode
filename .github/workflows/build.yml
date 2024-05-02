@@ -11,6 +11,10 @@ permissions:
   id-token: write
   attestations: write
 
+env:
+  OUTPUT_PATH: src\Community.PowerToys.Run.Plugin.UnicodeInput\bin
+  PLUGIN_NAME: UnicodeInput
+
 jobs:
   build:
     strategy:
@@ -18,11 +22,6 @@ jobs:
         platform: [ x64 , ARM64 ]
     
     runs-on: windows-latest
-
-    env:
-      OUTPUT_PATH: src\Community.PowerToys.Run.Plugin.UnicodeInput\bin # why does it need this?
-      PLUGIN_NAME: UnicodeInput
-      DOTNET_VER: net8.0-windows
 
     steps:
     - name: Checkout
@@ -51,16 +50,21 @@ jobs:
       run: dotnet build --configuration RELEASE /p:Platform=${{matrix.platform}} /p:EnableWindowsTargeting=true
       working-directory: src
 
-    - name: Prepare the artifact
+    - name: Prepare the artifacts
       run: |
         Remove-Item -Path ${{ env.OUTPUT_PATH }}\* -Recurse -Include *.xml, *.pdb, PowerToys.*, Wox.*
         Compress-Archive -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release -DestinationPath "${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip"
 
-    - name: Generate artifact attestation
+    - name: Generate artifact attestations
       uses: actions/attest-build-provenance@v1
       with:
         subject-path: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip
 
+  release:
+    runs-on: windows-latest
+    needs: [build]
+
+    steps:
     - name: Upload the artifact(s)
       uses: actions/upload-artifact@v4
       with:
@@ -73,7 +77,3 @@ jobs:
         draft: true
         files: |
           ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-*.zip
-
-#    - name: Debug with tmate on failure
-#      if: ${{ failure() }}
-#      uses: mxschmitt/action-tmate@v3
