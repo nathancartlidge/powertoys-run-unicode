@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [ x64, ARM64 ]
+        platform: [ x64 ] # ARM64
     
     runs-on: windows-latest
 
@@ -34,12 +34,12 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Execute unit tests
-      run: dotnet test
-      working-directory: src
-
     - name: Restore the application
       run: dotnet restore
+      working-directory: src
+
+    - name: Execute unit tests
+      run: dotnet test
       working-directory: src
 
     - name: Build the application
@@ -58,6 +58,6 @@ jobs:
         name: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip
         path: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip
 
-    - name: Debug with tmate on failure
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
+#    - name: Debug with tmate on failure
+#      if: ${{ failure() }}
+#      uses: mxschmitt/action-tmate@v3
