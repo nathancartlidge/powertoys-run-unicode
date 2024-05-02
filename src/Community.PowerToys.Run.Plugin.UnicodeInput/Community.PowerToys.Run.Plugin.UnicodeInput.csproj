@@ -3,26 +3,55 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <TargetName>Community.PowerToys.Run.Plugin.UnicodeInput</TargetName>
     <LanguageVersion>latest</LanguageVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <Platforms>x64;ARM64</Platforms>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!-- x64 libraries-->
+  <ItemGroup Condition="'$(Platform)' == 'x64'">
     <Reference Include="PowerToys.Common.UI">
-      <HintPath>..\libs\PowerToys.Common.UI.dll</HintPath>
+      <Private>False</Private>
+      <HintPath>..\libs\x64\PowerToys.Common.UI.dll</HintPath>
     </Reference>
     <Reference Include="PowerToys.ManagedCommon">
-      <HintPath>..\libs\PowerToys.ManagedCommon.dll</HintPath>
+      <Private>False</Private>
+      <HintPath>..\libs\x64\PowerToys.ManagedCommon.dll</HintPath>
     </Reference>
     <Reference Include="Wox.Infrastructure">
-      <HintPath>..\libs\Wox.Infrastructure.dll</HintPath>
+      <Private>False</Private>
+      <HintPath>..\libs\x64\Wox.Infrastructure.dll</HintPath>
     </Reference>
     <Reference Include="Wox.Plugin">
-      <HintPath>..\libs\Wox.Plugin.dll</HintPath>
+      <Private>False</Private>
+      <HintPath>..\libs\x64\Wox.Plugin.dll</HintPath>
     </Reference>
   </ItemGroup>
 
+  <!-- ARM64 libraries-->
+  <ItemGroup Condition="'$(Platform)' == 'ARM64'">
+    <Reference Include="PowerToys.Common.UI">
+      <Private>False</Private>
+      <HintPath>..\libs\ARM64\PowerToys.Common.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="PowerToys.ManagedCommon">
+      <Private>False</Private>
+      <HintPath>..\libs\ARM64\PowerToys.ManagedCommon.dll</HintPath>
+    </Reference>
+    <Reference Include="Wox.Infrastructure">
+      <Private>False</Private>
+      <HintPath>..\libs\ARM64\Wox.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="Wox.Plugin">
+      <Private>False</Private>
+      <HintPath>..\libs\ARM64\Wox.Plugin.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  
   <ItemGroup>
     <None Update="images\agda.dark.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
