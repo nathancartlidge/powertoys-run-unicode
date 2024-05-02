@@ -55,8 +55,15 @@ jobs:
     - name: Upload the artifact(s)
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip
-        path: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip
+        name: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}.zip
+        path: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-*.zip
+
+    - name: Create a release
+      uses: softprops/action-gh-release@v2
+      with:
+        draft: true
+        files: |
+          ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-*.zip
 
 #    - name: Debug with tmate on failure
 #      if: ${{ failure() }}
