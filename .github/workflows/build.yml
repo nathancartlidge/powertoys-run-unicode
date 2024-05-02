@@ -54,8 +54,7 @@ jobs:
     - name: Prepare the artifact
       run: |
         Remove-Item -Path ${{ env.OUTPUT_PATH }}\* -Recurse -Include *.xml, *.pdb, PowerToys.*, Wox.*
-        Move-Item -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\${{ env.DOTNET_VER }} -Destination ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\UnicodeInput
-        Compress-Archive -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release\UnicodeInput -DestinationPath "${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip"
+        Compress-Archive -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release -DestinationPath "${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip"
 
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v1
