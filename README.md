@@ -1,10 +1,4 @@
 # Unicode-Input: Agda-style Unicode character search in PowerToys Run
-
-> [!NOTE]
-> This project is still under active development - as such, while it does technically work in its current form, the
-> compiled output of the libraries provided may not be stable! Once stable releases are available they will be tagged
-> and published as such.
-
 ## Introduction
 **TLDR:** this plugin lets you type `\ne` and get `≠` in your clipboard, or thousands of other combinations!
 
@@ -27,20 +21,23 @@ also work here!
 
 ## Installation
 ### Automatic Installation (`winget`)
-*(TODO: This doesn't work yet, sorry)*
+*This doesn't work yet, sorry!*
 
 ### Manual Installation
-1. Close PowerToys
-2. Locate your plugin installation folder: for me, this was `~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins`
-3. Download the latest release from the sidebar *(TODO: These don't exist yet, sorry)*
-4. Extract this folder into the plugins folder
-5. Open PowerToys, and enable the plugin!
+1. Go to the [latest release](https://github.com/nathancartlidge/powertoys-run-unicode/releases/latest) and download the
+   `.zip` file that matches your architecture - this is probably `x64` if you are unsure.
+2. Close PowerToys
+3. Locate your plugin installation folder: for me, this was `~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins`
+4. Copy the plugin folder (`UnicodeInput`) from the release into this folder (such that the path
+   `...\PowerToys Run\Plugins\UnicodeInput\` exists)
+5. Open PowerToys and enable the plugin!
 6. 🥳
 
 ## Development / Contributing
 - This project is based upon dotnet version 8.0.x - to work on it, you will likely want a similar configuration.
 - You may wish to update the libraries in `src/libs` with copies from your own machine - these can be found in the root
   directory of your PowerToys installation.
+- Please write unit tests for any functionality you add
 
 ## Attribution
 - Initial project structure based upon [ptrun-guid](https://github.com/skttl/ptrun-guid) by `skttl`
