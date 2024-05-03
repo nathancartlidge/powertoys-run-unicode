@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <IsPackable>false</IsPackable>
-    <RootNamespace>nthn.Agda.Tests</RootNamespace>
+    <RootNamespace>Community.PowerToys.Run.Plugin.UnicodeInput.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

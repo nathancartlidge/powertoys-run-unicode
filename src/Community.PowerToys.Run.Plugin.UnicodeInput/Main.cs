@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using Wox.Plugin;
 
-namespace nthn.Agda
+namespace Community.PowerToys.Run.Plugin.UnicodeInput
 {
     public class Main : IPlugin
     {

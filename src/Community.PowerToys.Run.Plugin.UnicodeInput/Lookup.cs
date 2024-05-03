@@ -8,7 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text.RegularExpressions;
 
-namespace nthn.Agda
+namespace Community.PowerToys.Run.Plugin.UnicodeInput
 {
     public class AgdaLookup
     {
