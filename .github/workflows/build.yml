@@ -65,11 +65,15 @@ jobs:
     needs: [build]
 
     steps:
+    - name: Read Version
+      run: |
+        echo "PLUGIN_VERSION=$(git describe --tags --dirty --candidates 1 --always)" >> $env:GITHUB_ENV
+
     - name: Upload the artifact(s)
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}.zip
-        path: ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-*.zip
+        path: ${{ env.PLUGIN_NAME }}-*.zip
 
     - name: Create a release
       uses: softprops/action-gh-release@v2
