@@ -1,8 +1,5 @@
 ﻿using ManagedCommon;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 using Wox.Plugin;
 
 namespace Community.PowerToys.Run.Plugin.UnicodeInput
@@ -10,13 +7,13 @@ namespace Community.PowerToys.Run.Plugin.UnicodeInput
     public class Main : IPlugin
     {
         private string IconPath { get; set; }
-        private AgdaLookup _lookup = new AgdaLookup();
+        private readonly AgdaLookup _lookup = new AgdaLookup();
 
         private PluginInitContext Context { get; set; }
         public string Name => "Unicode Input";
 
         public string Description => "Agda-style Unicode Input";
-        public int MaxResults => 8;
+        private static int MaxResults => 8;
 
         public static string PluginID => "778f24fc48714097b30303f83d5bed6a";
 
@@ -32,8 +29,9 @@ namespace Community.PowerToys.Run.Plugin.UnicodeInput
                     Title = prefix,
                     SubTitle = "No match found yet - keep typing! " + _arrayToString(nextChar),
                     IcoPath = IconPath,
-                    Score = nextChar.Count == 0 ? score - 5 : score - 1,
-                    Action = e => false,
+                    // if there is only one possible letter to be typed, this could easily get in the way
+                    Score = nextChar.Count <= 1 ? score - 2 : score - 1,
+                    Action = _ => false,
                 };
             }
 
@@ -62,7 +60,7 @@ namespace Community.PowerToys.Run.Plugin.UnicodeInput
                 SubTitle = subtitleStringBuilder.ToString(),
                 IcoPath = IconPath,
                 Score = score,
-                Action = e =>
+                Action = _ =>
                 {
                     Clipboard.SetText(choices[0]);
                     return true;
@@ -97,25 +95,22 @@ namespace Community.PowerToys.Run.Plugin.UnicodeInput
             }
             return output.ToString();
         }
-        
+
         public List<Result> Query(Query query)
         {
-            // Fetch the non-keyword part of the query
-            string q;
-            if (string.IsNullOrEmpty(query.ActionKeyword))
-            {
-                q = query.RawQuery.Trim();
-            }
-            else
-            {
-                q = query.RawQuery[query.ActionKeyword.Length..].Trim();
-            }
-
+            // Clean up the raw query by discarding the keyword and trimming
+            return Query(string.IsNullOrEmpty(query.ActionKeyword)
+                ? query.RawQuery.Trim() // no keyword - just trim
+                : query.RawQuery[query.ActionKeyword.Length..].Trim()); // keyword - remove it, then trim
+        }
+        
+        private List<Result> Query(string query)
+        {
             List<Result> results = [];
             
             // Exact matching - agda has a key, we provide that key
-            var exactMatches = AgdaLookup.ExactMatches(q);
-            (List<char> validChars, List<string> partialMatches) = _lookup.PartialMatch(q);
+            var exactMatches = AgdaLookup.ExactMatches(query);
+            var (validChars, partialMatches) = _lookup.PartialMatch(query);
 
             // In the case where we have nothing useful to add (e == 0 and p == 0), we should avoid polluting the list
             //  of results (e == 0 and p == 0)
@@ -127,7 +122,7 @@ namespace Community.PowerToys.Run.Plugin.UnicodeInput
             {
                 results.Add(
                     item: MakeResult(
-                        prefix:   q,
+                        prefix:   query,
                         choices:  exactMatches,
                         nextChar: validChars,
                         score:    0
@@ -136,7 +131,7 @@ namespace Community.PowerToys.Run.Plugin.UnicodeInput
             }
 
             // Number-indexed matching support
-            var (k, i, numberMatch) = _lookup.NumberMatch(q);
+            var (k, i, numberMatch) = _lookup.NumberMatch(query);
             if (numberMatch != null)
             {
                 results.Add(
@@ -187,7 +182,7 @@ namespace Community.PowerToys.Run.Plugin.UnicodeInput
             else if (exactMatches.Count > 1)
             {
                 options = exactMatches[1..];
-                searchKey = q;
+                searchKey = query;
                 jStart = 1;
             }
             else return results;
