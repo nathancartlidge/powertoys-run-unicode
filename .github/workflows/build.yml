@@ -76,4 +76,4 @@ jobs:
       with:
         draft: true
         files: |
-          ${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-*.zip
+          ${{ env.PLUGIN_NAME }}-*.zip
