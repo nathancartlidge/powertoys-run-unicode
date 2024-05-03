@@ -13,11 +13,11 @@ If you are unfamiliar, this input method allows you to type the Latex form of (a
 replaced with the equivalent unicode character in your document, allowing for very the construction of very dense
 programs!
 
-For example, you can type `\lambda` and the plugin will insert `λ` into your document. For longer latex strings, such as
-`\mathbb{N}`, you can type `\bN` - this will result in inserting `ℕ` into your document.
+For example, you can type `\lambda` and the plugin will copy `λ` into your clipboard. For longer latex strings, such as
+`\mathbb{N}` (for `ℕ`), there are often shorter equivalents - in this case, you type `\bN`
 
-This plugin is based upon a complete export of Agda's input mappings - as such, any command that works in agda should
-also work here!
+This plugin is based upon a complete export of Agda's input mapping library - as such, any command that works in Agda
+should also work here!
 
 ## Installation
 ### Automatic Installation (`winget`)
