@@ -1,4 +1,6 @@
 # Unicode-Input: Agda-style Unicode character search in PowerToys Run
+![Build Pipeline](https://github.com/nathancartlidge/powertoys-run-unicode/actions/workflows/build.yml/badge.svg)
+
 ## Introduction
 **TLDR:** this plugin lets you type `\ne` and get `≠` in your clipboard, or thousands of other combinations!
 
@@ -9,12 +11,13 @@
 **Unicode-Input** is a [PowerToys Run](https://learn.microsoft.com/en-gb/windows/powertoys/run) plugin that emulates the input
 capabilities of Emacs in [agda-mode](https://agda.readthedocs.io/en/v2.6.4.3/tools/emacs-mode.html#unicode-input).
 
-If you are unfamiliar, this input method allows you to type the Latex form of (almost) any character - this will then be
-replaced with the equivalent unicode character in your document, allowing for very the construction of very dense
-programs!
-
-For example, you can type `\lambda` and the plugin will copy `λ` into your clipboard. For longer latex strings, such as
-`\mathbb{N}` (for `ℕ`), there are often shorter equivalents - in this case, you type `\bN`
+> If you are unfamiliar, this input method allows you to type the Latex form of (almost) any character - this will then
+> be replaced with the equivalent unicode character in your document, allowing for very the construction of very dense
+> programs!
+>
+> For example, you can type `\lambda` and the plugin will copy `λ` into your clipboard. For some longer latex strings,
+> such as `\mathbb{N}` (for `ℕ`), a shorter version is often - in this case, you would type `\bN`. It's not just
+> limited to mathematics - for example, you could type `\'a` to get the accented character `á`
 
 This plugin is based upon a complete export of Agda's input mapping library - as such, any command that works in Agda
 should also work here!
