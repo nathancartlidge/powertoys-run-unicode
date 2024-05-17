@@ -7,7 +7,7 @@ using Wox.Plugin.Common;
 
 namespace Community.PowerToys.Run.Plugin.UnicodeInput;
 
-public class Main : IPlugin
+public partial class Main : IPlugin, IContextMenu
 {
     private string IconPath { get; set; }
 
@@ -85,8 +85,64 @@ public class Main : IPlugin
             {
                 Clipboard.SetText(choices[0]);
                 return true;
-            }
+            },
+            ContextData = choices[0],
         };
+    }
+    
+    public List<ContextMenuResult> LoadContextMenus(Result selectedResult)
+    {
+        if (selectedResult?.ContextData is null) return [];
+        var symbol = selectedResult.ContextData.ToString()!;
+        var choiceChar = char.ConvertToUtf32(symbol, 0);
+
+        return
+        [
+            new ContextMenuResult
+            {
+                PluginName = Name,
+                Title = $"Copy symbol ({symbol}) to clipboard",
+                FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
+                Glyph = "\ue8c8", // Copy
+                Action = _ =>
+                {
+                    Clipboard.SetText(symbol);
+                    return true;
+                }
+            },
+            new ContextMenuResult
+            {
+                PluginName = Name,
+                Title = $"Copy codepoint (\\u{choiceChar:X4}) to clipboard",
+                FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
+                Glyph = "\ue8c1", // Characters
+                Action = _ =>
+                {
+                    Clipboard.SetText($"\\u{choiceChar:X4}");
+                    return true;
+                }
+            },
+            new ContextMenuResult
+            {
+                PluginName = Name,
+                Title = $"U+{choiceChar:X4} - Character Information",
+                FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
+                Glyph = "\ue721", // Magnifying glass
+                Action = _ =>
+                {
+                    var url = $"https://unicodeplus.com/U+{choiceChar:X4}";
+                    // var url = "https://www.google.com/";
+                    
+                    if (!Helper.OpenCommandInShell(DefaultBrowserInfo.Path, DefaultBrowserInfo.ArgumentsPattern, url))
+                    {
+                        Context?.API.ShowMsg($"Plugin: {Name}", "Open default browser failed.");
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+        ];
     }
 
     private static string _arrayToString(IReadOnlyList<char> l, string separator = "")
