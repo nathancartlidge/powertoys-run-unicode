@@ -224,7 +224,7 @@ public partial class Main : IPlugin, IContextMenu
         }
 
         // HTML Numerics 
-        if (query.StartsWith('#') || query.StartsWith("u") || query.StartsWith("U+"))
+        if (query.StartsWith("&#") || query.StartsWith('#') || query.StartsWith('u') || query.StartsWith("U+"))
         {
             var htmlMatch = HtmlLookup.NumericMatch(query.Replace("U+", "#x").Replace("u", "#x"));
             if (htmlMatch != null)

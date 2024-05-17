@@ -2130,10 +2130,25 @@ public class HtmlLookup() : BaseLookup(HtmlKeyValuePairs)
         {"zwnj", "\u200C"}
     };
 
+    private static string RemoveHtml(string key)
+    {
+        if (key.StartsWith('&'))
+        {
+            key = key[1..];
+        }
+
+        if (key.EndsWith(';'))
+        {
+            key = key[..^1];
+        }
+
+        return key;
+    }
+
     public static string? NumericMatch(string key)
     {
+        key = RemoveHtml(key);
         key = key.Split("#")[1];
-        key = key.Split(";")[0];
         try
         {
             var keyValue = key.StartsWith('x') ? Convert.ToInt32(key[1..], 16) : Convert.ToInt32(key, 10);
@@ -2143,5 +2158,20 @@ public class HtmlLookup() : BaseLookup(HtmlKeyValuePairs)
         {
             return null;
         }
+    }
+    
+    public new List<string> ExactMatches(string key)
+    {
+        return base.ExactMatches(RemoveHtml(key));
+    }
+    
+    public new (List<char>, List<string>) PartialMatch(string key)
+    {
+        return base.PartialMatch(RemoveHtml(key));
+    }
+
+    public new string? Get(string key)
+    {
+        return base.Get(RemoveHtml(key));
     }
 }
