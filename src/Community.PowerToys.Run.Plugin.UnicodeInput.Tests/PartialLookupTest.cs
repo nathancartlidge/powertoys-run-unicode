@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
@@ -15,7 +13,7 @@ public class PartialLookupTest
     public void TestPartialSingleMatch()
     {
         // qe[d]
-        var exactMatches = AgdaLookup.ExactMatches("qe");
+        var exactMatches = _lookup.ExactMatches("qe");
         var (nextChars, partialMatches) = _lookup.PartialMatch("qe");
         Assert.AreEqual(exactMatches.Count, 0);
         Assert.AreEqual(nextChars.Count, 1);
@@ -29,7 +27,7 @@ public class PartialLookupTest
     {
         // G[ABCDEFGHIKLMNOPRSTUXZabcdefghiklmnoprstuxz]
         var (nextChars, partialMatches) = _lookup.PartialMatch("G");
-        var expected = "ABCDEFGHIKLMNOPRSTUXZabcdefghiklmnoprstuxz";
+        const string expected = "ABCDEFGHIKLMNOPRSTUXZabcdefghiklmnoprstuxz";
         foreach (var c in expected)
         {
             Assert.IsTrue(nextChars.Contains(c));

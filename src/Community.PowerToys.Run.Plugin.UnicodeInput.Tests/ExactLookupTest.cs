@@ -8,13 +8,15 @@ namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
 [TestSubject(typeof(AgdaLookup))]
 public class ExactLookupTest
 {
+    private readonly AgdaLookup _lookup = new();
+    
     [TestMethod]
     public void TestSimpleMatch()
     {
         Console.WriteLine("Testing single matches");
         Console.WriteLine("Testing simple case ('_2' to '₂')");
 
-        var result = AgdaLookup.ExactMatches("_2");
+        var result = _lookup.ExactMatches("_2");
         Assert.AreEqual(result.Count, 1);
         Assert.AreEqual(result[0], "₂");
     }
@@ -24,7 +26,7 @@ public class ExactLookupTest
     {
         Console.WriteLine("Testing long case ('^\\turned r with long leg and retroflex hook' to '𐞧')");
 
-        var result = AgdaLookup.ExactMatches("^\\turned r with long leg and retroflex hook");
+        var result = _lookup.ExactMatches("^\\turned r with long leg and retroflex hook");
         Assert.AreEqual(result.Count, 1);
         Assert.AreEqual(result[0], "𐞧");
     }
@@ -34,7 +36,7 @@ public class ExactLookupTest
     {
         Console.WriteLine("Testing multiple output (':')");
 
-        var result = AgdaLookup.ExactMatches(":");
+        var result = _lookup.ExactMatches(":");
         // "∶ ⦂ ː ꞉ ˸ ፥ ፦ ： ﹕ ︓  "
         Assert.AreEqual(result.Count, 11);
         Assert.AreEqual(result[0], "\u2236");
@@ -46,7 +48,7 @@ public class ExactLookupTest
     {
         Console.WriteLine("Testing invalid case");
 
-        var result = AgdaLookup.ExactMatches("thisisnotavalidkey");
+        var result = _lookup.ExactMatches("thisisnotavalidkey");
         Assert.AreEqual(result.Count, 0);
     }
 }
