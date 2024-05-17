@@ -1,6 +1,9 @@
 ﻿using ManagedCommon;
 using System.Text;
 using Wox.Plugin;
+using System.Text.RegularExpressions;
+using Wox.Infrastructure;
+using Wox.Plugin.Common;
 
 namespace Community.PowerToys.Run.Plugin.UnicodeInput;
 
@@ -20,16 +23,18 @@ public class Main : IPlugin
     // ReSharper disable once InconsistentNaming
     public static string PluginID => "778f24fc48714097b30303f83d5bed6a";
 
-    private Result MakeResult(string prefix, IReadOnlyList<string> choices, IReadOnlyList<char> nextChar, int score)
+    private Result MakeResult(string prefix, string suffix, IReadOnlyList<string> choices, IReadOnlyList<char> nextChar,
+                              int score, bool isHtml = false)
     {
         var titleStringBuilder = new StringBuilder();
         titleStringBuilder.Append(prefix);
+        titleStringBuilder.Append(suffix);
         if (choices.Count == 0)
         {
             // no exact match, but there are options if you keep typing - return a hint
             return new Result
             {
-                Title = prefix,
+                Title = prefix + suffix,
                 SubTitle = "No match found yet - keep typing! " + _arrayToString(nextChar),
                 IcoPath = IconPath,
                 // if there is only one possible letter to be typed, this could easily get in the way
@@ -38,11 +43,24 @@ public class Main : IPlugin
             };
         }
 
+        // we have at least one choice
         titleStringBuilder.Append(" \u2192 ");
         titleStringBuilder.Append(choices[0]);
 
         var subtitleStringBuilder = new StringBuilder();
-        subtitleStringBuilder.Append("Copy this symbol to the clipboard");
+        var tooltipStringBuilder = new StringBuilder();
+        var agdaGet = _agdaLookup.Get(prefix);
+        var htmlGet = _htmlLookup.Get(prefix);
+        if (agdaGet != null && agdaGet.Contains(choices[0]))
+        {
+            subtitleStringBuilder.Append('\u25e2');
+        }
+        if (isHtml || (htmlGet != null && htmlGet.Contains(choices[0])))
+        {
+            subtitleStringBuilder.Append('\u26ca');
+        }
+        
+        subtitleStringBuilder.Append(" Copy this symbol to the clipboard");
         if (choices.Count > 1)
         {
             subtitleStringBuilder.Append(" -- ");
@@ -88,7 +106,12 @@ public class Main : IPlugin
         sb.Append(" ]");
         return sb.ToString();
     }
+    
+    [GeneratedRegex(@"^(.*?)(\d+)$")]
+    private static partial Regex NumberMatcherRegex();
 
+    private readonly Regex _numberMatcher = NumberMatcherRegex();
+    
     private static string _subscriptNumber(int i)
     {
         var output = new StringBuilder();
@@ -121,7 +144,10 @@ public class Main : IPlugin
 
         var validChars = validAgdaChars.Union(validHtmlChars).ToList();
         var partialMatches = partialAgdaMatches.Union(partialHtmlMatches).ToList();
-        
+
+        validChars.Sort();
+        partialMatches.Sort();
+
         // In the case where we have nothing useful to add (e == 0 and p == 0), we should avoid polluting the list
         //  of results (e == 0 and p == 0)
         // In the case where there is only one match, there is no point attempting to show the 'No match found yet!'
@@ -133,6 +159,7 @@ public class Main : IPlugin
             results.Add(
                 item: MakeResult(
                     prefix:   query,
+                    suffix:   "",
                     choices:  exactMatches,
                     nextChar: validChars,
                     score:    0
@@ -140,30 +167,44 @@ public class Main : IPlugin
             );   
         }
 
-        // Number-indexed matching support - agda-only
-        var (k, i, numberMatch) = _agdaLookup.NumberMatch(query);
-        if (numberMatch != null)
-        {
-            results.Add(
-                item: MakeResult(
-                    prefix:   k + _subscriptNumber(i + 1),
-                    choices:  [numberMatch],
-                    nextChar: [],
-                    score:    0
-                )
-            );
-        }
-
         // HTML Numerics 
-        if (query.Contains('#'))
+        if (query.StartsWith('#') || query.StartsWith("u") || query.StartsWith("U+"))
         {
-            var htmlMatch = HtmlLookup.NumericMatch(query);
+            var htmlMatch = HtmlLookup.NumericMatch(query.Replace("U+", "#x").Replace("u", "#x"));
             if (htmlMatch != null)
             {
                 results.Add(
                     item: MakeResult(
                         prefix:   query,
+                        suffix:   "",
                         choices:  [htmlMatch],
+                        nextChar: [],
+                        score:    0,
+                        isHtml:   true
+                    )
+                );
+            }
+        }
+        
+        // Number-indexed matching support
+        var numberKey = "";
+        var numberIndex = -1;
+        var numberMatches = new List<string>();
+        
+        var match = _numberMatcher.Match(query);
+        if (match.Success)
+        {
+            numberKey = match.Groups[1].Value;
+            numberIndex = int.Parse(match.Groups[2].Value) - 1;
+
+            numberMatches = _agdaLookup.ExactMatches(numberKey).Union(_htmlLookup.ExactMatches(numberKey)).ToList();
+            if (0 <= numberIndex && numberIndex < numberMatches.Count)
+            {
+                results.Add(
+                    item: MakeResult(
+                        prefix:   numberKey,
+                        suffix:   _subscriptNumber(numberIndex + 1),
+                        choices:  [numberMatches[numberIndex]],
                         nextChar: [],
                         score:    0
                     )
@@ -181,10 +222,11 @@ public class Main : IPlugin
                 .Take(remainingSlots)
                 .Select(s =>
                     MakeResult(
-                        prefix: s,
-                        choices: _agdaLookup.ExactMatches(s).Union(_htmlLookup.ExactMatches(s)).ToList(),
+                        prefix:   s,
+                        suffix:   "",
+                        choices:  _agdaLookup.ExactMatches(s).Union(_htmlLookup.ExactMatches(s)).ToList(),
                         nextChar: [],
-                        score: partialMatches.Count == 1 ? 0 : -1
+                        score:    partialMatches.Count == 1 ? 0 : -1
                     )
                 )
         );
@@ -201,11 +243,11 @@ public class Main : IPlugin
         // - if our search was for a particular number, show subsequent options
         // - otherwise, start from 1
         // - if neither of these conditions apply, just return
-        if (numberMatch != null)
+        if (match.Success && numberIndex != 0 && numberIndex < numberMatches.Count)
         {
-            options = _agdaLookup.ExactMatches(k)[(i + 1)..];
-            searchKey = k;
-            jStart = i + 1;
+            options = numberMatches[(numberIndex + 1)..];
+            searchKey = numberKey;
+            jStart = numberIndex + 1;
         }
         else if (exactMatches.Count > 1)
         {
@@ -219,7 +261,8 @@ public class Main : IPlugin
         {
             results.Add(
                 item: MakeResult(
-                    prefix:   searchKey + _subscriptNumber(j + jStart + 1),
+                    prefix:   searchKey,
+                    suffix:   _subscriptNumber(j + jStart + 1),
                     choices:  [options[j]],
                     nextChar: [],
                     score:    -1

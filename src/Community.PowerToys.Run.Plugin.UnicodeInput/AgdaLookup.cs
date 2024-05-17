@@ -2570,25 +2570,4 @@ public partial class AgdaLookup() : BaseLookup(AgdaKeyValuePairs)
         {"integral", "∫ ∬ ∭ ∮ ∯ ∰ ∱ ∲ ∳"},
         {"intersection", "∩ ⋂ ∧ ⋀ ⋏ ⨇ ⊓ ⨅ ⋒ ∏ ⊼ ⨉"}
     };
-
-    [GeneratedRegex(@"^(.*?)(\d+)$")]
-    private static partial Regex NumberMatchRegex();
-
-    private readonly Regex _numberMatcher = NumberMatchRegex();
-        
-    public (string, int, string) NumberMatch(string keyAndIndex)
-    {
-        var match = _numberMatcher.Match(keyAndIndex);
-        if (!match.Success) return (null, -1, null);
-            
-        var key = match.Groups[1].Value;
-        var index = int.Parse(match.Groups[2].Value) - 1;
-        var matches = ExactMatches(key);
-        if (0 <= index && index < matches.Count)
-        {
-            return (key, index, matches[index]);
-        }
-
-        return (null, -1, null);
-    }
 }

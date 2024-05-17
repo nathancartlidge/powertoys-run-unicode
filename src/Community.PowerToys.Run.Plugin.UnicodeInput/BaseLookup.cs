@@ -1,3 +1,4 @@
+#nullable enable
 namespace Community.PowerToys.Run.Plugin.UnicodeInput;
 
 public class BaseLookup
@@ -74,5 +75,11 @@ public class BaseLookup
         } 
             
         return (validNextChars, validPartialMatches);
+    }
+
+    public string? Get(string key)
+    {
+        var match = _keyValuePairs.GetValueOrDefault(key, "");
+        return match == "" ? null : match;
     }
 }
