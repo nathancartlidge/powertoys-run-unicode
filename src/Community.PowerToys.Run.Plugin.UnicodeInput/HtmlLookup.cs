@@ -2158,6 +2158,10 @@ public class HtmlLookup() : BaseLookup(HtmlKeyValuePairs)
         {
             return null;
         }
+        catch (FormatException)
+        {
+            return null;
+        }
     }
     
     public new List<string> ExactMatches(string key)
@@ -2165,9 +2169,9 @@ public class HtmlLookup() : BaseLookup(HtmlKeyValuePairs)
         return base.ExactMatches(RemoveHtml(key));
     }
     
-    public new (List<char>, List<string>) PartialMatch(string key)
+    public new (List<char>, List<string>) PartialMatches(string key)
     {
-        return base.PartialMatch(RemoveHtml(key));
+        return base.PartialMatches(RemoveHtml(key));
     }
 
     public new string? Get(string key)
