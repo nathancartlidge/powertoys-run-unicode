@@ -4,7 +4,7 @@
   "ActionKeyword": "\\",
   "Name": "Unicode Input",
   "Author": "nathancartlidge",
-  "Version": "1.0.2",
+  "Version": "1.1.0",
   "Language": "csharp",
   "Website": "https://github.com/nathancartlidge/powertoys-run-unicode",
   "ExecuteFileName": "Community.PowerToys.Run.Plugin.UnicodeInput.dll",
