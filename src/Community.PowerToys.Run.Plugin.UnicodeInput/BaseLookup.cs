@@ -11,12 +11,12 @@ public class BaseLookup
         _keyValuePairs = keyValuePairs;
         _sortedKeys = _keyValuePairs.Keys.ToList().Order(StringComparer.Ordinal).ToList();
     }
-        
-    public List<string> ExactMatches(string key)
+    
+    public List<string> ExactMatches(string input)
     {
-        if (!_keyValuePairs.ContainsKey(key)) return [];
+        if (!_keyValuePairs.ContainsKey(input)) return [];
             
-        var value = _keyValuePairs.GetValueOrDefault(key, "");
+        var value = _keyValuePairs.GetValueOrDefault(input, "");
         if (value == "") return [];
             
         var candidates = value.Split(" ");
@@ -24,21 +24,22 @@ public class BaseLookup
 
     }
         
-    public (List<char>, List<string>) PartialMatch(string key)
+    public (List<char>, List<string>) PartialMatch(string input)
     {
         if (string.IsNullOrEmpty(key))
+        if (string.IsNullOrEmpty(input))
         {
             return ([], []);
         }
-        // goal: we want all elements of _sortedKeys that have `key` as a suffix.
+        // goal: we want all elements of _sortedKeys that have `input` as a prefix.
         //       theoretically we can just do this with a filter, but I want to be fancy about it
         //       so, instead I intend to do this with a binary search:
-        //        - look for the location of key
-        //        - look for the location of key+1
+        //        - look for the location of input
+        //        - look for the location of input+1
         //       these will be my elements
             
         // get the starting point
-        var firstIndex = _sortedKeys.BinarySearch(key, StringComparer.Ordinal);
+        var firstIndex = _sortedKeys.BinarySearch(input, StringComparer.Ordinal);
         if (firstIndex < 0)
         {
             firstIndex = ~ firstIndex;
@@ -49,8 +50,8 @@ public class BaseLookup
         }
             
         // get the next element - because the list is sorted, this can just be done by incrementing the last char
-        var allButLast = key[..^1];
-        var lastChar = key[^1];
+        var allButLast = input[..^1];
+        var lastChar = input[^1];
         var incrementedCode = lastChar + 1;
         var incrementedChar = (char) incrementedCode;
         var subsequentKey = allButLast + incrementedChar;
@@ -68,13 +69,30 @@ public class BaseLookup
         {
             var value = _sortedKeys[i];
             validPartialMatches.Add(value);
-            if (validNextChars.Count == 0 || value[key.Length] != validNextChars.Last())
+            if (validNextChars.Count == 0 || value[input.Length] != validNextChars.Last())
             {
-                validNextChars.Add(value[key.Length]);
+                validNextChars.Add(value[input.Length]);
             }
-        } 
+        }
             
         return (validNextChars, validPartialMatches);
+    }
+    
+    public List<string> PartialEndMatch(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return [];
+        }
+        
+        // goal: we want all elements of _sortedKeys that have `input` as a suffix.
+        //       sadly I don't think there is an easy way to test this as far as I know, so it's an O(N)
+        var validPartialMatches = new List<String>();
+        return _sortedKeys
+            .FindAll(key => key.EndsWith(input, StringComparison.Ordinal) && key != input)
+            // note: we remove exact matches above
+            .OrderBy(key => key.Length)
+            .ToList();
     }
 
     public string? Get(string key)

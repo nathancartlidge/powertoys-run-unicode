@@ -48,7 +48,6 @@ public partial class Main : IPlugin, IContextMenu
         titleStringBuilder.Append(choices[0]);
 
         var subtitleStringBuilder = new StringBuilder();
-        var tooltipStringBuilder = new StringBuilder();
         var agdaGet = _agdaLookup.Get(prefix);
         var htmlGet = _htmlLookup.Get(prefix);
         if (agdaGet != null && agdaGet.Contains(choices[0]))
@@ -181,12 +180,12 @@ public partial class Main : IPlugin, IContextMenu
     public List<Result> Query(Query query)
     {
         // Clean up the raw query by discarding the keyword and trimming
-        return Query(string.IsNullOrEmpty(query.ActionKeyword)
+        return QueryString(string.IsNullOrEmpty(query.ActionKeyword)
             ? query.RawQuery.Trim() // no keyword - just trim
             : query.RawQuery[query.ActionKeyword.Length..].Trim()); // keyword - remove it, then trim
     }
         
-    private List<Result> Query(string query)
+    public List<Result> QueryString(string query)
     {
         List<Result> results = [];
         
@@ -196,10 +195,16 @@ public partial class Main : IPlugin, IContextMenu
         var exactMatches = exactAgdaMatches.Union(exactHtmlMatches).ToList();
         
         var (validAgdaChars, partialAgdaMatches) = _agdaLookup.PartialMatch(query);
+        var partialAgdaEndMatches = _agdaLookup.PartialEndMatch(query);
         var (validHtmlChars, partialHtmlMatches) = _htmlLookup.PartialMatch(query);
+        var partialHtmlEndMatches = _htmlLookup.PartialEndMatch(query);
 
         var validChars = validAgdaChars.Union(validHtmlChars).ToList();
-        var partialMatches = partialAgdaMatches.Union(partialHtmlMatches).ToList();
+        var partialMatches = partialAgdaMatches
+            .Union(partialAgdaEndMatches)
+            .Union(partialHtmlMatches)
+            .Union(partialHtmlEndMatches)
+            .ToList();
 
         validChars.Sort();
         partialMatches.Sort();
@@ -218,7 +223,7 @@ public partial class Main : IPlugin, IContextMenu
                     suffix:   "",
                     choices:  exactMatches,
                     nextChar: validChars,
-                    score:    0
+                    score:    10
                 )
             );   
         }
@@ -235,7 +240,7 @@ public partial class Main : IPlugin, IContextMenu
                         suffix:   "",
                         choices:  [htmlMatch],
                         nextChar: [],
-                        score:    0,
+                        score:    1,
                         isHtml:   true
                     )
                 );
@@ -262,7 +267,7 @@ public partial class Main : IPlugin, IContextMenu
                         suffix:   _subscriptNumber(numberIndex + 1),
                         choices:  [numberMatches[numberIndex]],
                         nextChar: [],
-                        score:    0
+                        score:    1
                     )
                 );
             }
@@ -287,7 +292,7 @@ public partial class Main : IPlugin, IContextMenu
                 )
         );
 
-        // Number-indexed alternatives (to fill remaining slots
+        // Number-indexed alternatives (to fill remaining slots)
         remainingSlots = int.Max(0, MaxResults - results.Count);
         if (remainingSlots <= 0) return results; // early stopping
             

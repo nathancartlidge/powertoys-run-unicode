@@ -44,4 +44,17 @@ public class PartialLookupTest
         Assert.IsTrue(nextChars.Count == 0);
         Assert.IsTrue(partialMatches.Count == 0);
     }
+    
+    [TestMethod]
+    public void TestEndMatch()
+    {
+        // 0
+        var exactMatches = _lookup.ExactMatches("0");
+        var (nextChars, partialMatches) = _lookup.PartialMatch("0");
+        var partialEndMatches = _lookup.PartialEndMatch("0");
+        Assert.AreEqual(exactMatches.Count, 1);
+        Assert.AreEqual(nextChars.Count, 0);
+        Assert.AreEqual(partialMatches.Count, 0);
+        Assert.AreNotEqual(partialEndMatches.Count, 0);
+    }
 }
