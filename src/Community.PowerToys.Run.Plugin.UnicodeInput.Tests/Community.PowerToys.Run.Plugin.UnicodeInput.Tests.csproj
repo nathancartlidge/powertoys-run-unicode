@@ -5,12 +5,29 @@
     <IsPackable>false</IsPackable>
     <RootNamespace>Community.PowerToys.Run.Plugin.UnicodeInput.Tests</RootNamespace>
   </PropertyGroup>
+  
+  <ItemGroup Condition="'$(Platform)' == 'AnyCPU' OR '$(Platform)' == 'x64'">
+    <Reference Include="Wox.Plugin, Version=0.78.0.0, Culture=neutral, PublicKeyToken=null">
+      <Private>True</Private>
+      <HintPath>..\libs\x64\Wox.Plugin.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <CopyLocal>True</CopyLocal>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Platform)' == 'ARM64'">
+    <Reference Include="Wox.Plugin, Version=0.78.0.0, Culture=neutral, PublicKeyToken=null">
+      <Private>False</Private>
+      <HintPath>..\libs\ARM64\Wox.Plugin.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.2.2" />
     <PackageReference Include="MSTest.TestFramework" Version="3.2.2" />
+    <PackageReference Include="System.IO.Abstractions" Version="17.0.28" />
   </ItemGroup>
 
   <ItemGroup>

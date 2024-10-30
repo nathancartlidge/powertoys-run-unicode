@@ -184,7 +184,7 @@ public partial class Main : IPlugin, IContextMenu
             ? query.RawQuery.Trim() // no keyword - just trim
             : query.RawQuery[query.ActionKeyword.Length..].Trim()); // keyword - remove it, then trim
     }
-        
+    
     public List<Result> QueryString(string query)
     {
         List<Result> results = [];
@@ -194,20 +194,15 @@ public partial class Main : IPlugin, IContextMenu
         var exactHtmlMatches = _htmlLookup.ExactMatches(query);
         var exactMatches = exactAgdaMatches.Union(exactHtmlMatches).ToList();
         
-        var (validAgdaChars, partialAgdaMatches) = _agdaLookup.PartialMatch(query);
-        var partialAgdaEndMatches = _agdaLookup.PartialEndMatch(query);
-        var (validHtmlChars, partialHtmlMatches) = _htmlLookup.PartialMatch(query);
-        var partialHtmlEndMatches = _htmlLookup.PartialEndMatch(query);
-
-        var validChars = validAgdaChars.Union(validHtmlChars).ToList();
-        var partialMatches = partialAgdaMatches
-            .Union(partialAgdaEndMatches)
-            .Union(partialHtmlMatches)
-            .Union(partialHtmlEndMatches)
+        // partial matching
+        var (validAgdaChars, partialAgdaMatches) = _agdaLookup.PartialMatches(query);
+        var (validHtmlChars, partialHtmlMatches) = _htmlLookup.PartialMatches(query);
+        
+        var validChars = validAgdaChars.Union(validHtmlChars).Order().ToList();
+        var partialMatches = partialAgdaMatches.Union(partialHtmlMatches)
+            .OrderBy(key => !key.StartsWith(query)) // prioritise terms that start with our query
+            .ThenBy(key => key.Length) // then order by length - Hanlon's razor, we probably want the short option
             .ToList();
-
-        validChars.Sort();
-        partialMatches.Sort();
 
         // In the case where we have nothing useful to add (e == 0 and p == 0), we should avoid polluting the list
         //  of results (e == 0 and p == 0)
@@ -228,7 +223,7 @@ public partial class Main : IPlugin, IContextMenu
             );   
         }
 
-        // HTML Numerics 
+        // HTML Numerics
         if (query.StartsWith("&#") || query.StartsWith('#') || query.StartsWith('u') || query.StartsWith("U+"))
         {
             var htmlMatch = HtmlLookup.NumericMatch(query.Replace("U+", "#x").Replace("u", "#x"));
@@ -279,7 +274,6 @@ public partial class Main : IPlugin, IContextMenu
 
         results.AddRange(
             collection: partialMatches
-                .OrderBy(it => it.Length)
                 .Take(remainingSlots)
                 .Select(s =>
                     MakeResult(

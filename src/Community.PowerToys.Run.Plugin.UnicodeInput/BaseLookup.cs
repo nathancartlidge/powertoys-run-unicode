@@ -23,78 +23,51 @@ public class BaseLookup
         return candidates.ToList();
 
     }
-        
-    public (List<char>, List<string>) PartialMatch(string input)
+
+    public (List<char>, List<string>) PartialMatches(string input)
     {
-        if (string.IsNullOrEmpty(key))
+        // todo: case sensitivity?
         if (string.IsNullOrEmpty(input))
         {
             return ([], []);
         }
-        // goal: we want all elements of _sortedKeys that have `input` as a prefix.
-        //       theoretically we can just do this with a filter, but I want to be fancy about it
-        //       so, instead I intend to do this with a binary search:
-        //        - look for the location of input
-        //        - look for the location of input+1
-        //       these will be my elements
-            
-        // get the starting point
-        var firstIndex = _sortedKeys.BinarySearch(input, StringComparer.Ordinal);
-        if (firstIndex < 0)
-        {
-            firstIndex = ~ firstIndex;
-        }
-        else
-        {
-            firstIndex += 1;
-        }
-            
-        // get the next element - because the list is sorted, this can just be done by incrementing the last char
-        var allButLast = input[..^1];
-        var lastChar = input[^1];
-        var incrementedCode = lastChar + 1;
-        var incrementedChar = (char) incrementedCode;
-        var subsequentKey = allButLast + incrementedChar;
+        
+        // find matches that contain the specified string: eg [vd]ash, lam[bda], [text]musical[alnote]
+        var containsMatches = ContainsMatches(input);
+        
+        var validNextCharacters = containsMatches
+            .FindAll(key => key.StartsWith(input) && key.Length > input.Length)
+            .Select(key => key[input.Length..][0])
+            .Distinct()
+            .ToList();
 
-        var lastIndex = _sortedKeys.BinarySearch(subsequentKey, StringComparer.Ordinal);
-        if (lastIndex < 0)
-        {
-            lastIndex = ~ lastIndex;
-        }
-
-        var validNextChars = new List<char>();
-        var validPartialMatches = new List<string>();
-
-        for (var i = firstIndex; i < lastIndex; i++)
-        {
-            var value = _sortedKeys[i];
-            validPartialMatches.Add(value);
-            if (validNextChars.Count == 0 || value[input.Length] != validNextChars.Last())
-            {
-                validNextChars.Add(value[input.Length]);
-            }
-        }
-            
-        return (validNextChars, validPartialMatches);
+        return (
+            validNextCharacters,
+            containsMatches
+        );
     }
     
-    public List<string> PartialEndMatch(string input)
+    private List<string> ContainsMatches(string input)
     {
-        if (string.IsNullOrEmpty(input))
-        {
-            return [];
-        }
-        
-        // goal: we want all elements of _sortedKeys that have `input` as a suffix.
-        //       sadly I don't think there is an easy way to test this as far as I know, so it's an O(N)
-        var validPartialMatches = new List<String>();
-        return _sortedKeys
-            .FindAll(key => key.EndsWith(input, StringComparison.Ordinal) && key != input)
-            // note: we remove exact matches above
-            .OrderBy(key => key.Length)
-            .ToList();
+        return _sortedKeys.FindAll(key =>
+            key.Contains(input, StringComparison.Ordinal)
+            && key != input
+        );
     }
 
+    // private List<string> CaseMatches(string input)
+    // {
+    //     if (input == input.ToLower())
+    //     {
+    //         // we only want to perform case matching if the input is already lowercase - otherwise, the user has
+    //         //  probably already decided they want a particular case and are con
+    //     }
+    //     else
+    //     {
+    //         return [];
+    //     }
+    // }
+    
     public string? Get(string key)
     {
         var match = _keyValuePairs.GetValueOrDefault(key, "");
