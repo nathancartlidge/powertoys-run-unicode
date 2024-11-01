@@ -35,10 +35,10 @@ command that works in Agda or in your browser should also work here!
    `.zip` file that matches your architecture - this is probably `x64` if you are unsure.
 2. Close PowerToys
 3. Locate your plugin installation folder: for me, this was `~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins`
-4. Copy the plugin folder (`UnicodeInput`) from the release into this folder (such that the path
-   `...\PowerToys Run\Plugins\UnicodeInput\` exists)
-5. Open PowerToys and enable the plugin!
-6. 🥳
+4. Copy the plugin folder (`Release`) from the release into this folder, and optionally rename it to `UnicodeInput`
+   (such that the path `...\PowerToys Run\Plugins\UnicodeInput\` exists)
+6. Open PowerToys and enable the plugin!
+7. 🥳
 
 ## Development / Contributing
 - This project is based upon dotnet version 8.0.x - to work on it, you will likely want a similar configuration.
