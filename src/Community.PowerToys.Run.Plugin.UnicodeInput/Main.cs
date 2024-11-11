@@ -2,6 +2,7 @@
 using System.Text;
 using Wox.Plugin;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
 using Wox.Infrastructure;
 using Wox.Plugin.Common;
 
@@ -13,6 +14,7 @@ public partial class Main : IPlugin, IContextMenu
 
     private readonly AgdaLookup _agdaLookup = new();
     private readonly HtmlLookup _htmlLookup = new();
+    private readonly Typer _typer = new();
 
     private PluginInitContext Context { get; set; }
     public string Name => "Unicode Input";
@@ -20,6 +22,8 @@ public partial class Main : IPlugin, IContextMenu
     public string Description => "Agda-style Unicode Input";
     private static int MaxResults => 8;
 
+    // todo: customisable options for the plugin
+    
     // ReSharper disable once InconsistentNaming
     public static string PluginID => "778f24fc48714097b30303f83d5bed6a";
 
@@ -59,7 +63,9 @@ public partial class Main : IPlugin, IContextMenu
             subtitleStringBuilder.Append('\u26ca');
         }
         
-        subtitleStringBuilder.Append(" Copy this symbol to the clipboard");
+        // todo: custom selection of what the default action is
+        // subtitleStringBuilder.Append(" Copy this symbol to the clipboard");
+        subtitleStringBuilder.Append(" Input this symbol");
         if (choices.Count > 1)
         {
             subtitleStringBuilder.Append(" -- ");
@@ -82,7 +88,9 @@ public partial class Main : IPlugin, IContextMenu
             Score = score,
             Action = _ =>
             {
-                Clipboard.SetText(choices[0]);
+                // todo: as above
+                Task.Run(() => _typer.Type(choices[0]));
+                // Clipboard.SetText(choices[0]);
                 return true;
             },
             ContextData = choices[0],

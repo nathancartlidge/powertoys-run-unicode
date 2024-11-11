@@ -1,4 +1,4 @@
-# Unicode-Input: Agda-style Unicode character search in PowerToys Run
+# Unicode-Input: Agda and HTML-style Unicode character input in PowerToys Run
 ![Build Pipeline](https://github.com/nathancartlidge/powertoys-run-unicode/actions/workflows/build.yml/badge.svg)
 
 ## Introduction
@@ -50,3 +50,5 @@ command that works in Agda or in your browser should also work here!
 - Initial project structure based upon [ptrun-guid](https://github.com/skttl/ptrun-guid) by `skttl`
 - GitHub CI pipeline based upon [PowerToys Run: GitKraken](https://github.com/davidegiacometti/PowerToys-Run-GitKraken) 
   by `davidegiacometti`
+- Auto-typing implementation from [InputTyper](https://github.com/CoreyHayward/PowerToys-Run-InputTyper) by
+- `CoreyHayward`
