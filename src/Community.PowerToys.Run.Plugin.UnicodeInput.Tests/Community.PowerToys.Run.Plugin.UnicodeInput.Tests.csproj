@@ -13,12 +13,22 @@
       <SpecificVersion>True</SpecificVersion>
       <CopyLocal>True</CopyLocal>
     </Reference>
+    <Reference Include="PowerToys.Settings.UI.Lib, Version=0.76.0.0, Culture=neutral, PublicKeyToken=null">
+      <Private>True</Private>
+      <HintPath>..\libs\x64\PowerToys.Settings.UI.Lib.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <CopyLocal>True</CopyLocal>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Platform)' == 'ARM64'">
     <Reference Include="Wox.Plugin, Version=0.78.0.0, Culture=neutral, PublicKeyToken=null">
       <Private>False</Private>
       <HintPath>..\libs\ARM64\Wox.Plugin.dll</HintPath>
+    </Reference>
+    <Reference Include="PowerToys.Settings.UI.Lib, Version=0.76.0.0, Culture=neutral, PublicKeyToken=null">
+      <Private>False</Private>
+      <HintPath>..\libs\AM64\PowerToys.Settings.UI.Lib.dll</HintPath>
     </Reference>
   </ItemGroup>
 

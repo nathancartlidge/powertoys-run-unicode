@@ -5,28 +5,76 @@ using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Wox.Infrastructure;
 using Wox.Plugin.Common;
+using Microsoft.PowerToys.Settings.UI.Library;
 
 namespace Community.PowerToys.Run.Plugin.UnicodeInput;
 
-public partial class Main : IPlugin, IContextMenu
+public partial class Main : IPlugin, IContextMenu, ISettingProvider
 {
     private string IconPath { get; set; }
 
     private readonly AgdaLookup _agdaLookup = new();
     private readonly HtmlLookup _htmlLookup = new();
     private readonly Typer _typer = new();
-
+    
     private PluginInitContext Context { get; set; }
     public string Name => "Unicode Input";
 
     public string Description => "Agda-style Unicode Input";
     private static int MaxResults => 8;
-
-    // todo: customisable options for the plugin
     
     // ReSharper disable once InconsistentNaming
+    // ReSharper disable once UnusedMember.Global
     public static string PluginID => "778f24fc48714097b30303f83d5bed6a";
 
+    // --- CUSTOM SETTINGS SUPPORT -------------------------------------------------------------------------------------
+    // user-configurable variables
+    private bool _doTyping;
+    private int _typeDelay;
+    
+    // ReSharper disable once UnusedMember.Global
+    public IEnumerable<PluginAdditionalOption> AdditionalOptions => new List<PluginAdditionalOption>()
+    {
+        new()
+        {
+            Key = "DoTyping",
+            DisplayLabel = "Use Typing",
+            DisplayDescription = "If checked, unicode symbols will be typed instead of copied by default.",
+            Value = true,
+            PluginOptionType = PluginAdditionalOption.AdditionalOptionType.Checkbox,
+        },
+        new()
+        {
+            Key = "BeginTypeDelay",
+            DisplayLabel = "Type Delay (ms)",
+            DisplayDescription = "How long (in milliseconds) to wait before typing begins.",
+            NumberValue = 200,
+            PluginOptionType = PluginAdditionalOption.AdditionalOptionType.Numberbox,
+        },
+    };
+    
+    public System.Windows.Controls.Control CreateSettingPanel()
+    {
+        // we do not need to implement this method
+        throw new NotImplementedException();
+    }
+
+    public void UpdateSettings(PowerLauncherPluginSettings settings)
+    {
+        if (settings?.AdditionalOptions is null)
+        {
+            return;
+        }
+
+        var doTyping = settings.AdditionalOptions.FirstOrDefault(x => x.Key == "DoTyping");
+        var typeDelay = settings.AdditionalOptions.FirstOrDefault(x => x.Key == "BeginTypeDelay");
+
+        _doTyping = doTyping?.Value ?? true;
+        _typeDelay = (int)(typeDelay?.NumberValue ?? 200);
+    }
+    
+    // -----------------------------------------------------------------------------------------------------------------
+    
     private Result MakeResult(string prefix, string suffix, IReadOnlyList<string> choices, IReadOnlyList<char> nextChar,
                               int score, bool isHtml = false)
     {
@@ -63,9 +111,8 @@ public partial class Main : IPlugin, IContextMenu
             subtitleStringBuilder.Append('\u26ca');
         }
         
-        // todo: custom selection of what the default action is
-        // subtitleStringBuilder.Append(" Copy this symbol to the clipboard");
-        subtitleStringBuilder.Append(" Input this symbol");
+        // the default action changes depending upon `_doTyping`, so should the prompt
+        subtitleStringBuilder.Append(_doTyping ? " Input this symbol" : " Copy this symbol to the clipboard");
         if (choices.Count > 1)
         {
             subtitleStringBuilder.Append(" -- ");
@@ -88,9 +135,14 @@ public partial class Main : IPlugin, IContextMenu
             Score = score,
             Action = _ =>
             {
-                // todo: as above
-                Task.Run(() => _typer.Type(choices[0]));
-                // Clipboard.SetText(choices[0]);
+                if (_doTyping)
+                {
+                    Task.Run(() => _typer.Type(choices[0], _typeDelay));
+                }
+                else
+                {
+                    Clipboard.SetText(choices[0]);
+                }
                 return true;
             },
             ContextData = choices[0],
@@ -103,12 +155,30 @@ public partial class Main : IPlugin, IContextMenu
         var symbol = selectedResult.ContextData.ToString()!;
         var choiceChar = char.ConvertToUtf32(symbol, 0);
 
-        return
-        [
-            new ContextMenuResult
+        ContextMenuResult remainingOption;
+        if (_doTyping)
+        {
+            remainingOption = new ContextMenuResult
             {
                 PluginName = Name,
-                Title = $"Copy symbol ({symbol}) to clipboard",
+                Title = $"Input symbol {symbol} (Ctrl+I)",
+                FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
+                Glyph = "\ue765", // Keyboard
+                AcceleratorKey = Key.I,
+                AcceleratorModifiers = ModifierKeys.Control,
+                Action = _ =>
+                {
+                    Task.Run(() => _typer.Type(symbol, _typeDelay));
+                    return true;
+                }
+            };
+        }
+        else
+        {
+            remainingOption = new ContextMenuResult
+            {
+                PluginName = Name,
+                Title = $"Copy symbol {symbol} to clipboard (Ctrl+C)",
                 FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
                 Glyph = "\ue8c8", // Copy
                 AcceleratorKey = Key.C,
@@ -118,11 +188,16 @@ public partial class Main : IPlugin, IContextMenu
                     Clipboard.SetText(symbol);
                     return true;
                 }
-            },
+            };
+        }
+        
+        return
+        [
+            remainingOption,
             new ContextMenuResult
             {
                 PluginName = Name,
-                Title = $"Copy codepoint (\\u{choiceChar:X4}) to clipboard",
+                Title = $"Copy codepoint \\u{choiceChar:X4} to clipboard (Ctrl+Shift+C)",
                 FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
                 Glyph = "\ue8c1", // Characters
                 AcceleratorKey = Key.C,
@@ -136,7 +211,7 @@ public partial class Main : IPlugin, IContextMenu
             new ContextMenuResult
             {
                 PluginName = Name,
-                Title = $"U+{choiceChar:X4} - Character Information",
+                Title = $"U+{choiceChar:X4} - Character Information (Ctrl+O)",
                 FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
                 Glyph = "\ue721", // Magnifying glass
                 AcceleratorKey = Key.O,
@@ -199,6 +274,7 @@ public partial class Main : IPlugin, IContextMenu
     
     public List<Result> QueryString(string query)
     {
+        // todo: multiple lookup (\lambda_2 → λ₂ or \lambda\alpha → λα
         List<Result> results = [];
         
         // Exact matching - agda has a key, we provide that key

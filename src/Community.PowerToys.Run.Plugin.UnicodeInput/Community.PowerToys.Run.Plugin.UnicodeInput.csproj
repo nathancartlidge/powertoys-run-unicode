@@ -18,6 +18,10 @@
       <Private>False</Private>
       <HintPath>..\libs\x64\PowerToys.Common.UI.dll</HintPath>
     </Reference>
+    <Reference Include="PowerToys.Settings.UI.Lib">
+      <Private>False</Private>
+      <HintPath>..\libs\x64\PowerToys.Settings.UI.Lib.dll</HintPath>
+    </Reference>
     <Reference Include="PowerToys.ManagedCommon">
       <Private>False</Private>
       <HintPath>..\libs\x64\PowerToys.ManagedCommon.dll</HintPath>
@@ -37,6 +41,10 @@
     <Reference Include="PowerToys.Common.UI">
       <Private>False</Private>
       <HintPath>..\libs\ARM64\PowerToys.Common.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="PowerToys.Settings.UI.Lib">
+      <Private>False</Private>
+      <HintPath>..\libs\ARM64\PowerToys.Settings.UI.Lib.dll</HintPath>
     </Reference>
     <Reference Include="PowerToys.ManagedCommon">
       <Private>False</Private>
