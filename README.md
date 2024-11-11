@@ -1,9 +1,9 @@
-# Unicode-Input: Agda-style Unicode character search in PowerToys Run
+# Unicode-Input: Agda and HTML-style Unicode character input in PowerToys Run
 ![Build Pipeline](https://github.com/nathancartlidge/powertoys-run-unicode/actions/workflows/build.yml/badge.svg)
 
 ## Introduction
-**TLDR:** this plugin lets you type `\ne` and get `≠` in your clipboard, `&times;` and get `×`, `&#x1f61d;` to get
-`😝`, or thousands of other combinations!
+**TLDR:** this plugin lets you type `\ne` and get `≠` typed or in your clipboard, `&times;` and get `×`, `&#x1f61d;` to
+get `😝`, or thousands of other combinations!
 
 > Do you often need to type unicode symbols like `™` or `≤`? Do you have the wikipedia page for
 > [box drawing characters](https://en.wikipedia.org/wiki/Box-drawing_character#Unicode) saved as a bookmark? Have you
@@ -16,15 +16,16 @@ capabilities of both [HTML entities](https://developer.mozilla.org/en-US/docs/Gl
 > then be replaced with the equivalent unicode character in your document, allowing for very the construction of very
 > dense programs!
 >
-> For example, you can type `\lambda` and the plugin will copy `λ` into your clipboard. For some longer latex strings,
-> such as `\mathbb{N}` (for `ℕ`), a shorter version is often - in this case, you would type `\bN`. It's not just
-> limited to mathematics - for example, you could type `\'a` to get the accented character `á`
+> For example, you can type `\lambda` and the plugin will either copy `λ` into your clipboard or enter `λ` into your
+> current document, depending on how you have it configured. For some longer latex strings, such as `\mathbb{N}` (for
+> `ℕ`), a shorter version is often - in this case, you would type `\bN`. It's not just limited to mathematics - for
+> example, you could type `\'a` to get the accented character `á`
 > 
 > HTML entities attempts to accomplish a broadly similar task (representing unicode characters with text), but are
 > slightly more verbose in cases.
 
 This plugin is based upon a complete export of Agda's input mapping library and WHATWG's entity mappings - as such, any
-command that works in Agda or in your browser should also work here!
+alias that works in Agda or in your browser should also work here!
 
 ## Installation
 ### Automatic Installation (`winget`)
@@ -35,10 +36,11 @@ command that works in Agda or in your browser should also work here!
    `.zip` file that matches your architecture - this is probably `x64` if you are unsure.
 2. Close PowerToys
 3. Locate your plugin installation folder: for me, this was `~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins`
-4. Copy the plugin folder (`Release`) from the release into this folder, and optionally rename it to `UnicodeInput`
-   (such that the path `...\PowerToys Run\Plugins\UnicodeInput\` exists)
-6. Open PowerToys and enable the plugin!
-7. 🥳
+4. Copy the plugin folder from the zip into this folder (such that the path
+   `...\PowerToys Run\Plugins\UnicodeInput\plugin.json` exists)
+5. Open PowerToys and enable the plugin!
+6. (optional) Decide whether you want to use it in clipboard or typing mode - there is a checkbox to toggle this
+6. 🥳
 
 ## Development / Contributing
 - This project is based upon dotnet version 8.0.x - to work on it, you will likely want a similar configuration.
@@ -50,3 +52,5 @@ command that works in Agda or in your browser should also work here!
 - Initial project structure based upon [ptrun-guid](https://github.com/skttl/ptrun-guid) by `skttl`
 - GitHub CI pipeline based upon [PowerToys Run: GitKraken](https://github.com/davidegiacometti/PowerToys-Run-GitKraken) 
   by `davidegiacometti`
+- Auto-typing implementation from [InputTyper](https://github.com/CoreyHayward/PowerToys-Run-InputTyper) by
+- `CoreyHayward`
