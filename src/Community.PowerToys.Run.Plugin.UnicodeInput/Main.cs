@@ -103,6 +103,8 @@ public partial class Main : IPlugin, IContextMenu
                 Title = $"Copy symbol ({symbol}) to clipboard",
                 FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
                 Glyph = "\ue8c8", // Copy
+                AcceleratorKey = Key.C,
+                AcceleratorModifiers = ModifierKeys.Control,
                 Action = _ =>
                 {
                     Clipboard.SetText(symbol);
@@ -115,6 +117,8 @@ public partial class Main : IPlugin, IContextMenu
                 Title = $"Copy codepoint (\\u{choiceChar:X4}) to clipboard",
                 FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
                 Glyph = "\ue8c1", // Characters
+                AcceleratorKey = Key.C,
+                AcceleratorModifiers = ModifierKeys.Control | ModifierKeys.Shift,
                 Action = _ =>
                 {
                     Clipboard.SetText($"\\u{choiceChar:X4}");
@@ -127,18 +131,18 @@ public partial class Main : IPlugin, IContextMenu
                 Title = $"U+{choiceChar:X4} - Character Information",
                 FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
                 Glyph = "\ue721", // Magnifying glass
+                AcceleratorKey = Key.O,
+                AcceleratorModifiers = ModifierKeys.Control,
                 Action = _ =>
                 {
                     var url = $"https://unicodeplus.com/U+{choiceChar:X4}";
-                    // var url = "https://www.google.com/";
-                    
-                    if (!Helper.OpenCommandInShell(DefaultBrowserInfo.Path, DefaultBrowserInfo.ArgumentsPattern, url))
+                    if (Helper.OpenCommandInShell(DefaultBrowserInfo.Path, DefaultBrowserInfo.ArgumentsPattern, url))
                     {
-                        Context?.API.ShowMsg($"Plugin: {Name}", "Open default browser failed.");
-                        return false;
+                        return true;
                     }
-
-                    return true;
+                    
+                    Context?.API.ShowMsg($"Plugin: {Name}", "Open default browser failed.");
+                    return false;
                 }
             }
         ];
