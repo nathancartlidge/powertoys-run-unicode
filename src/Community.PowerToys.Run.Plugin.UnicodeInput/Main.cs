@@ -158,24 +158,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         ContextMenuResult remainingOption;
         if (_doTyping)
         {
-            remainingOption = new ContextMenuResult
-            {
-                PluginName = Name,
-                Title = $"Input symbol {symbol} (Ctrl+I)",
-                FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
-                Glyph = "\ue765", // Keyboard
-                AcceleratorKey = Key.I,
-                AcceleratorModifiers = ModifierKeys.Control,
-                Action = _ =>
-                {
-                    Task.Run(() => _typer.Type(symbol, _typeDelay));
-                    return true;
-                }
-            };
-        }
-        else
-        {
-            remainingOption = new ContextMenuResult
+          	remainingOption = new ContextMenuResult
             {
                 PluginName = Name,
                 Title = $"Copy symbol {symbol} to clipboard (Ctrl+C)",
@@ -186,6 +169,23 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
                 Action = _ =>
                 {
                     Clipboard.SetText(symbol);
+                    return true;
+                }
+            };
+        }
+        else
+        {
+			remainingOption = new ContextMenuResult
+            {
+                PluginName = Name,
+                Title = $"Input symbol {symbol} (Ctrl+I)",
+                FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
+                Glyph = "\ue765", // Keyboard
+                AcceleratorKey = Key.I,
+                AcceleratorModifiers = ModifierKeys.Control,
+                Action = _ =>
+                {
+                    Task.Run(() => _typer.Type(symbol, _typeDelay));
                     return true;
                 }
             };
