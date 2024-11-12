@@ -14,16 +14,19 @@ public class UsageTests
     {
         Main main = new Main();
         
-        List<Result> results = main.QueryString("emptyset");
+        List<Result> results = main.GetUnicodeSymbol("emptyset");
         Assert.AreEqual(results.Count, 1);
         Assert.AreEqual(results[0].Title, "emptyset \u2192 \u2205");
         
-        results = main.QueryString("0");
+        results = main.GetUnicodeSymbol("0");
         Assert.IsTrue(results.Count > 1);
         Assert.AreEqual(results[0].Title, "0 \u2192 \u2205");
         
-        results = main.QueryString("uml");
+        results = main.GetUnicodeSymbol("uml");
         Assert.AreNotEqual(results.Count, 0);
         Assert.AreEqual(results[0].Title, "uml \u2192 \u00a8");
+
+        results = main.GetUnicodeSymbol("λ");
+        Assert.AreNotEqual(results.Count, 0);
     }
 }

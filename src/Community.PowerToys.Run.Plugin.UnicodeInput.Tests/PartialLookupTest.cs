@@ -60,4 +60,19 @@ public class PartialLookupTest
         Assert.IsTrue(partialMatches.Contains("otimes"));
         Assert.IsTrue(partialMatches.Contains("bot"));
     }
+
+    [TestMethod]
+    public void TestReverseLookup()
+    {
+        // up arrow
+        var reverseMatches = _lookup.ReverseMatch("↑");
+        Assert.IsTrue(reverseMatches.Contains("u"));
+        Assert.IsTrue(reverseMatches.Contains("u-"));
+        Assert.IsTrue(reverseMatches.Contains("uparrow"));
+        
+        // lambda
+        reverseMatches = _lookup.ReverseMatch("λ");
+        Assert.IsTrue(reverseMatches.Contains("Gl"));
+        Assert.IsTrue(reverseMatches.Contains("lambda"));
+    }
 }

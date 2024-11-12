@@ -267,12 +267,48 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     public List<Result> Query(Query query)
     {
         // Clean up the raw query by discarding the keyword and trimming
-        return QueryString(string.IsNullOrEmpty(query.ActionKeyword)
+        // todo: cleanup the little numbers so they can still be recognised?
+        var cleanedQuery = string.IsNullOrEmpty(query.ActionKeyword)
             ? query.RawQuery.Trim() // no keyword - just trim
-            : query.RawQuery[query.ActionKeyword.Length..].Trim()); // keyword - remove it, then trim
+            : query.RawQuery[query.ActionKeyword.Length..].Trim();
+
+        return cleanedQuery.All(c => c > 127) ?
+            // exclusively non-ascii characters in the query - do reverse matching
+            GetAsciiPrompt(cleanedQuery) :
+            // some ascii characters - do forwards matching
+            GetUnicodeSymbol(cleanedQuery);
+    }
+
+    private List<Result> GetAsciiPrompt(string query)
+    {
+        // Exact matching - agda has a key, we provide that key
+        var agdaMatches = _agdaLookup.ReverseMatch(query);
+        var htmlMatches = _htmlLookup.ReverseMatch(query);
+        var matches = agdaMatches.Union(htmlMatches)
+            .OrderBy(key => key.Any(char.IsDigit))
+            .ThenBy(key => key.Length)
+            .Take(MaxResults)
+            .ToList();
+
+        if (matches.Count == 0)
+        {
+            return [];
+        }
+
+        return matches
+            .Select(
+                match => MakeResult(
+                    prefix: match,
+                    suffix: "",
+                    choices: [query],
+                    nextChar: [],
+                    score: 1
+                )
+            )
+            .ToList();
     }
     
-    public List<Result> QueryString(string query)
+    public List<Result> GetUnicodeSymbol(string query)
     {
         // todo: multiple lookup (\lambda_2 → λ₂ or \lambda\alpha → λα
         List<Result> results = [];

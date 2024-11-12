@@ -24,6 +24,26 @@ public class BaseLookup
 
     }
 
+    public List<string> ReverseMatch(string input)
+    {
+        var matches = _keyValuePairs
+            .Where(kv => kv.Value.Contains(input))
+            .Select(
+                kv => kv.Value.Contains(' ')
+                    ? kv.Key + GetIndex(kv.Value) // multi-select optionn
+                    : kv.Key // single option
+            );
+        return matches.ToList();
+
+        string GetIndex(string value)
+        {
+            var candidates = value.Split(" ").ToList();
+            var index = candidates.IndexOf(input);
+            // if index is zero, then it is the default option - no name needed!
+            return index > 0 ? (1 + index).ToString() : "";
+        }
+    }
+    
     public (List<char>, List<string>) PartialMatches(string input)
     {
         // todo: case sensitivity?
