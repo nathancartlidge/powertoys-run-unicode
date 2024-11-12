@@ -28,5 +28,9 @@ public class UsageTests
 
         results = main.GetUnicodeSymbol("λ");
         Assert.AreNotEqual(results.Count, 0);
+
+        // regression test for issue with unicode parsing in b1cbcdd1 
+        results = main.GetUnicodeSymbol("u-");
+        Assert.AreNotEqual(results.Count, 0);
     }
 }

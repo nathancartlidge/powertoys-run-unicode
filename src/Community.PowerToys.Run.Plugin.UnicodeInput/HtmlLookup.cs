@@ -2154,7 +2154,10 @@ public class HtmlLookup() : BaseLookup(HtmlKeyValuePairs)
             var keyValue = key.StartsWith('x') ? Convert.ToInt32(key[1..], 16) : Convert.ToInt32(key, 10);
             return keyValue > 12 ? char.ConvertFromUtf32(keyValue) : null;
         }
-        catch (ArgumentOutOfRangeException)
+        catch (ArgumentOutOfRangeException) {
+            return null;
+        }
+        catch (ArgumentException)
         {
             return null;
         }
