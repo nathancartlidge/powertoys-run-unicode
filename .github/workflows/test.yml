@@ -1,0 +1,45 @@
+name: Run Tests
+
+on:
+  workflow_dispatch:
+  push:
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  OUTPUT_PATH: src\Community.PowerToys.Run.Plugin.UnicodeInput\bin
+  PLUGIN_NAME: UnicodeInput
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [ x64 ]
+
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read Version
+        run: |
+          echo "PLUGIN_VERSION=$(git describe --tags --dirty --candidates 1 --always)" >> $env:GITHUB_ENV;
+          echo "Plugin Version is '${{ env.PLUGIN_VERSION }}'"
+
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore the application
+        run: dotnet restore
+        working-directory: src
+
+      - name: Execute unit tests
+        run: dotnet test
+        working-directory: src
