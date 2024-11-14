@@ -15,14 +15,14 @@ public class HtmlLookupTest
     {
         Console.WriteLine("Testing on '!'");
         var result = HtmlLookup.NumericMatch("#33;");
-        Assert.AreEqual(result, "!");
+        Assert.AreEqual("!", result);
         
         Console.WriteLine("Testing on '!' without semicolon");
         result = HtmlLookup.NumericMatch("#33");
-        Assert.AreEqual(result, "!");
+        Assert.AreEqual("!", result);
         
         Console.WriteLine("Testing on a more complex symbol");
         result = HtmlLookup.NumericMatch("#x2460;");
-        Assert.AreEqual(result, "\u2460");
+        Assert.AreEqual("\u2460", result);
     }
 }

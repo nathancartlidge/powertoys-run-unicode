@@ -17,8 +17,8 @@ public class ExactLookupTest
         Console.WriteLine("Testing simple case ('_2' to '₂')");
 
         var result = _lookup.ExactMatches("_2");
-        Assert.AreEqual(result.Count, 1);
-        Assert.AreEqual(result[0], "₂");
+        Assert.AreEqual(1, result.Count);
+        Assert.AreEqual("₂", result[0]);
     }
 
     [TestMethod]
@@ -27,8 +27,8 @@ public class ExactLookupTest
         Console.WriteLine("Testing long case ('^\\turned r with long leg and retroflex hook' to '𐞧')");
 
         var result = _lookup.ExactMatches("^\\turned r with long leg and retroflex hook");
-        Assert.AreEqual(result.Count, 1);
-        Assert.AreEqual(result[0], "𐞧");
+        Assert.AreEqual(1, result.Count);
+        Assert.AreEqual("𐞧", result[0]);
     }
 
     [TestMethod]
@@ -38,9 +38,9 @@ public class ExactLookupTest
 
         var result = _lookup.ExactMatches(":");
         // "∶ ⦂ ː ꞉ ˸ ፥ ፦ ： ﹕ ︓  "
-        Assert.AreEqual(result.Count, 11);
-        Assert.AreEqual(result[0], "\u2236");
-        Assert.AreEqual(result[3], "\ua789");
+        Assert.AreEqual(11, result.Count);
+        Assert.AreEqual("\u2236", result[0]);
+        Assert.AreEqual("\ua789", result[3]);
     }
 
     [TestMethod]
@@ -49,6 +49,6 @@ public class ExactLookupTest
         Console.WriteLine("Testing invalid case");
 
         var result = _lookup.ExactMatches("thisisnotavalidkey");
-        Assert.AreEqual(result.Count, 0);
+        Assert.AreEqual(0, result.Count);
     }
 }

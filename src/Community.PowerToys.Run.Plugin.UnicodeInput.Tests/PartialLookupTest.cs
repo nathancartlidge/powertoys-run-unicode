@@ -15,11 +15,11 @@ public class PartialLookupTest
         // qe[d]
         var exactMatches = _lookup.ExactMatches("qe");
         var (nextChars, partialMatches) = _lookup.PartialMatches("qe");
-        Assert.AreEqual(exactMatches.Count, 0);
-        Assert.AreEqual(nextChars.Count, 1);
-        Assert.AreEqual(nextChars[0], 'd');
-        Assert.AreEqual(partialMatches.Count, 1);
-        Assert.AreEqual(partialMatches[0], "qed");
+        Assert.AreEqual(0, exactMatches.Count);
+        Assert.AreEqual(1, nextChars.Count);
+        Assert.AreEqual('d', nextChars[0]);
+        Assert.AreEqual(1, partialMatches.Count);
+        Assert.AreEqual("qed", partialMatches[0]);
     }
 
     [TestMethod]
@@ -51,9 +51,9 @@ public class PartialLookupTest
         // 0
         var exactMatches = _lookup.ExactMatches("0");
         var (nextChars, partialMatches) = _lookup.PartialMatches("0");
-        Assert.AreEqual(exactMatches.Count, 1);
-        Assert.AreEqual(nextChars.Count, 0);
-        Assert.AreNotEqual(partialMatches.Count, 0);
+        Assert.AreEqual(1, exactMatches.Count);
+        Assert.AreEqual(0, nextChars.Count);
+        Assert.AreNotEqual(0, partialMatches.Count);
         
         // [b]ot / ot[imes] 
         (_, partialMatches) = _lookup.PartialMatches("ot");
