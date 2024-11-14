@@ -75,6 +75,17 @@ public class BaseLookup
         );
     }
 
+    public string LongestPartialMatch(string input)
+    {
+        return _sortedKeys
+                // find all keys that match the start of the input
+                .FindAll(key => input.StartsWith(key, StringComparison.Ordinal))
+                // find the longest (sort in reverse length order)
+                .OrderBy(key => -key.Length)
+                // take the first of these values
+                .FirstOrDefault("");
+    }
+    
     // private List<string> CaseMatches(string input)
     // {
     //     if (input == input.ToLower())
@@ -90,6 +101,10 @@ public class BaseLookup
     
     public string? Get(string key)
     {
+        if (key == "")
+        {
+            return null;
+        }
         var match = _keyValuePairs.GetValueOrDefault(key, "");
         return match == "" ? null : match;
     }

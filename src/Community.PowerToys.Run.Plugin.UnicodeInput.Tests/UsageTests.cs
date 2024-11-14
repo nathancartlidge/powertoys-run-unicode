@@ -98,13 +98,19 @@ public class UsageTests
         Assert.AreEqual(0, results.Count);
     }
     
-    // todo: as we have not implemented this functionality yet, we should not write test methods for it
-    // [TestMethod]
-    // public void TestMultiple()
-    // {
-    //     var main = new Main();
-    //     
-    //     var results = main.Query(new Query("alpha\\beta\\gamma"));
-    //     var titles = GetTitles(results);
-    // }
+    [TestMethod]
+    public void TestMultiple()
+    {
+        var main = new Main();
+        
+        var results = main.Query(new Query("alpha\\beta\\gamma"));
+        var titles = GetTitles(results);
+        Assert.AreNotEqual(0, results.Count);
+        Assert.AreEqual("αβγ", titles[0].Item2);
+        
+        results = main.Query(new Query("gamma\\^\\gamma\\gamma"));
+        titles = GetTitles(results);
+        Assert.AreNotEqual(0, results.Count);
+        Assert.AreEqual("γˠγ", titles[0].Item2);
+    }
 }

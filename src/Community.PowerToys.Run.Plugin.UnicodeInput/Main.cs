@@ -48,7 +48,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             Key = "BeginTypeDelay",
             DisplayLabel = "Type Delay (ms)",
             DisplayDescription = "How long (in milliseconds) to wait before typing begins.",
-            NumberValue = 200,
+            NumberValue = 100,
             PluginOptionType = PluginAdditionalOption.AdditionalOptionType.Numberbox,
         },
     };
@@ -75,8 +75,8 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     
     // -----------------------------------------------------------------------------------------------------------------
     
-    private Result MakeResult(string prefix, string suffix, IReadOnlyList<string> choices, IReadOnlyList<char> nextChar,
-                              int score, bool isHtml = false)
+    private Result MakeResult(string prefix, string suffix, IReadOnlyList<string> choices,
+                              IReadOnlyList<char> nextChar, int score, bool isHtml = false)
     {
         var titleStringBuilder = new StringBuilder();
         titleStringBuilder.Append(prefix);
@@ -267,7 +267,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     public List<Result> Query(Query query)
     {
         // Clean up the raw query by discarding the keyword and trimming
-        // todo: cleanup the little numbers so they can still be recognised?
+        // todo: cleanup the little numbers so they can still be recognised in a reverse query?
         var cleanedQuery = string.IsNullOrEmpty(query.ActionKeyword)
             ? query.RawQuery.Trim() // no keyword - just trim
             : query.RawQuery[query.ActionKeyword.Length..].Trim();
@@ -307,16 +307,52 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             )
             .ToList();
     }
-    
-    public List<Result> GetUnicodeSymbol(string query)
+
+    private static List<string> AddPrefix(List<string> results, string prefix)
     {
-        // todo: multiple lookup (\lambda_2 → λ₂ or \lambda\alpha → λα
+        return results.Select(result => prefix + result).ToList();
+    }
+    
+    private List<Result> GetUnicodeSymbol(string query)
+    {
+        var partialResult = "";
         List<Result> results = [];
         
         // Exact matching - agda has a key, we provide that key
         var exactAgdaMatches = _agdaLookup.ExactMatches(query);
         var exactHtmlMatches = _htmlLookup.ExactMatches(query);
         var exactMatches = exactAgdaMatches.Union(exactHtmlMatches).ToList();
+        
+        // multiple-lookup implementation (\lambda\_2 → λ₂ or \lambda\alpha → λα)
+        // if there are no exact matches AND there is a backslash within the string
+        // todo: can we fetch a user-defined trigger shortcut?
+        while (exactMatches.Count == 0 && query.Contains('\\'))
+        {
+            // 1. find the longest substring that is a word
+            var longestAgdaPartialMatch = _agdaLookup.LongestPartialMatch(query);
+            var longestHtmlPartialMatch = _htmlLookup.LongestPartialMatch(query);
+            (var longestPartialMatch, var matchedCharacter) = longestAgdaPartialMatch.Length > longestHtmlPartialMatch.Length
+                ? (longestAgdaPartialMatch, _agdaLookup.Get(longestAgdaPartialMatch))
+                : (longestHtmlPartialMatch, _htmlLookup.Get(longestHtmlPartialMatch));
+
+            // 2a. if there is not a match, break out of the loop
+            if (longestPartialMatch == "" || matchedCharacter == "")
+            {
+                break;
+            }
+            
+            // 2b. if there is a match:
+            // - prepend this matched character to all responses
+            // - remove that part of the word from the query, so it doesn't interfere with other 
+            partialResult += matchedCharacter;
+            query = query[(longestPartialMatch.Length + 1)..];
+            
+            // 4. loop
+            // Exact matching - agda has a key, we provide that key
+            exactAgdaMatches = _agdaLookup.ExactMatches(query);
+            exactHtmlMatches = _htmlLookup.ExactMatches(query);
+            exactMatches = exactAgdaMatches.Union(exactHtmlMatches).ToList();
+        }
         
         // partial matching
         var (validAgdaChars, partialAgdaMatches) = _agdaLookup.PartialMatches(query);
@@ -338,16 +374,16 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         {
             results.Add(
                 item: MakeResult(
-                    prefix:   query,
+                    prefix:   (partialResult != "" ? "⋯" : "") + query,
                     suffix:   "",
-                    choices:  exactMatches,
+                    choices:  AddPrefix(exactMatches, partialResult),
                     nextChar: validChars,
                     score:    10
                 )
             );   
         }
 
-        // HTML Numerics
+        // HTML / Unicode Numerics
         if (query.StartsWith("&#") || query.StartsWith('#') || query.StartsWith('u') || query.StartsWith("U+"))
         {
             var htmlMatch = HtmlLookup.NumericMatch(query.Replace("U+", "#x").Replace("u", "#x"));
@@ -355,9 +391,9 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             {
                 results.Add(
                     item: MakeResult(
-                        prefix:   query,
+                        prefix:   (partialResult != "" ? "⋯" : "") + query,
                         suffix:   "",
-                        choices:  [htmlMatch],
+                        choices:  [partialResult + htmlMatch],
                         nextChar: [],
                         score:    1,
                         isHtml:   true
@@ -382,9 +418,9 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             {
                 results.Add(
                     item: MakeResult(
-                        prefix:   numberKey,
+                        prefix:   (partialResult != "" ? "⋯" : "") + numberKey,
                         suffix:   _subscriptNumber(numberIndex + 1),
-                        choices:  [numberMatches[numberIndex]],
+                        choices:  [partialResult + numberMatches[numberIndex]],
                         nextChar: [],
                         score:    1
                     )
@@ -401,9 +437,12 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
                 .Take(remainingSlots)
                 .Select(s =>
                     MakeResult(
-                        prefix:   s,
+                        prefix:   (partialResult != "" ? "⋯" : "") + s,
                         suffix:   "",
-                        choices:  _agdaLookup.ExactMatches(s).Union(_htmlLookup.ExactMatches(s)).ToList(),
+                        choices:  AddPrefix(
+                            _agdaLookup.ExactMatches(s).Union(_htmlLookup.ExactMatches(s)).ToList(),
+                            partialResult
+                        ),
                         nextChar: [],
                         score:    partialMatches.Count == 1 ? 0 : -1
                     )
@@ -440,9 +479,9 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         {
             results.Add(
                 item: MakeResult(
-                    prefix:   searchKey,
+                    prefix:   (partialResult != "" ? "⋯" : "") + searchKey,
                     suffix:   _subscriptNumber(j + jStart + 1),
-                    choices:  [options[j]],
+                    choices:  [partialResult + options[j]],
                     nextChar: [],
                     score:    -1
                 )
