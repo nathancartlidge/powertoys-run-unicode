@@ -326,12 +326,12 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         // multiple-lookup implementation (\lambda\_2 → λ₂ or \lambda\alpha → λα)
         // if there are no exact matches AND there is a backslash within the string
         // todo: can we fetch a user-defined trigger shortcut?
-        while (exactMatches.Count == 0 && query.Contains('\\'))
+        while (exactMatches.Count == 0 && (query.Contains('\\') || query.Contains(' ')))
         {
             // 1. find the longest substring that is a word
             var longestAgdaPartialMatch = _agdaLookup.LongestPartialMatch(query);
             var longestHtmlPartialMatch = _htmlLookup.LongestPartialMatch(query);
-            (var longestPartialMatch, var matchedCharacter) = longestAgdaPartialMatch.Length > longestHtmlPartialMatch.Length
+            var (longestPartialMatch, matchedCharacter) = longestAgdaPartialMatch.Length > longestHtmlPartialMatch.Length
                 ? (longestAgdaPartialMatch, _agdaLookup.Get(longestAgdaPartialMatch))
                 : (longestHtmlPartialMatch, _htmlLookup.Get(longestHtmlPartialMatch));
 
@@ -345,7 +345,9 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             // - prepend this matched character to all responses
             // - remove that part of the word from the query, so it doesn't interfere with other 
             partialResult += matchedCharacter;
-            query = query[(longestPartialMatch.Length + 1)..];
+            
+            query = query[longestPartialMatch.Length..].Trim();
+            query = query.StartsWith("\\") ? query[1..] : query;
             
             // 4. loop
             // Exact matching - agda has a key, we provide that key

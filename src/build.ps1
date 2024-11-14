@@ -14,6 +14,12 @@ if (Test-Path "~\AppData\Local\Microsoft\PowerToys\PowerToys Run") {
         sudo pwsh -cwa "Stop-Process -Name PowerToys";
         sleep 2;
     }
+    while ($pt) {
+        echo "PowerToys is still running, killing it again";
+        sudo pwsh -cwa "Stop-Process -Name PowerToys";
+        sleep 3;
+        $pt = Get-Process "PowerToys" -ea SilentlyContinue;
+    }
 
     echo "Installing plugin...";
     if (Test-Path "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput") {
@@ -25,6 +31,8 @@ if (Test-Path "~\AppData\Local\Microsoft\PowerToys\PowerToys Run") {
     cp -Recurse "Community.PowerToys.Run.Plugin.UnicodeInput\bin\x64\Release\Community.*" "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
     cp -Recurse "Community.PowerToys.Run.Plugin.UnicodeInput\bin\x64\Release\images"      "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
     cp          "Community.PowerToys.Run.Plugin.UnicodeInput\bin\x64\Release\plugin.json" "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+    
+    Start-Sleep -Milliseconds 100
     
     echo "Install Complete, launching PowerToys";
     ii "~\AppData\Local\PowerToys\PowerToys.exe";

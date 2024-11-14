@@ -112,5 +112,17 @@ public class UsageTests
         titles = GetTitles(results);
         Assert.AreNotEqual(0, results.Count);
         Assert.AreEqual("γˠγ", titles[0].Item2);
+        
+        // test with space and backslash between components
+        results = main.Query(new Query("alpha \\beta"));
+        titles = GetTitles(results);
+        Assert.AreNotEqual(0, results.Count);
+        Assert.AreEqual("αβ", titles[0].Item2);
+        
+        // test with just a space between components
+        results = main.Query(new Query("alpha beta"));
+        titles = GetTitles(results);
+        Assert.AreNotEqual(0, results.Count);
+        Assert.AreEqual("αβ", titles[0].Item2);
     }
 }
