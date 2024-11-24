@@ -315,6 +315,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     private List<Result> GetUnicodeSymbol(string query)
     {
         var partialResult = "";
+        var partialResultPrefix = "";
         List<Result> results = [];
         
         // cleanup the little numbers where appropriate? (replace them with their big equivalents)
@@ -346,8 +347,22 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             // 2b. if there is a match:
             // - prepend this matched character to all responses
             // - remove that part of the word from the query, so it doesn't interfere with other 
+            // we only reach this point if we have a match
+            // 3a. prepend this matched character to all responses
             partialResult += matchedCharacter;
+            partialResultPrefix += string.Concat(longestPartialMatch, ' ');
+            if (partialResultPrefix.Length > 12)
+            {
+                partialResultPrefix = string.Concat(
+                    "⋯",
+                    partialResultPrefix.AsSpan(
+                        partialResultPrefix.Length - 10,
+                        10
+                    )
+                );
+            }
             
+            // 3b. remove that part of the word from the query, so it doesn't interfere with other 
             query = query[longestPartialMatch.Length..].Trim();
             query = query.StartsWith("\\") ? query[1..] : query;
             
@@ -378,7 +393,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         {
             results.Add(
                 item: MakeResult(
-                    prefix:   (partialResult != "" ? "⋯" : "") + query,
+                    prefix:   partialResultPrefix + query,
                     suffix:   "",
                     choices:  AddPrefix(exactMatches, partialResult),
                     nextChar: validChars,
@@ -395,7 +410,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             {
                 results.Add(
                     item: MakeResult(
-                        prefix:   (partialResult != "" ? "⋯" : "") + query,
+                        prefix:   partialResultPrefix + query,
                         suffix:   "",
                         choices:  [partialResult + htmlMatch],
                         nextChar: [],
@@ -422,7 +437,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             {
                 results.Add(
                     item: MakeResult(
-                        prefix:   (partialResult != "" ? "⋯" : "") + numberKey,
+                        prefix:   partialResultPrefix + numberKey,
                         suffix:   _subscriptNumber(numberIndex + 1),
                         choices:  [partialResult + numberMatches[numberIndex]],
                         nextChar: [],
@@ -441,7 +456,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
                 .Take(remainingSlots)
                 .Select(s =>
                     MakeResult(
-                        prefix:   (partialResult != "" ? "⋯" : "") + s,
+                        prefix:   partialResultPrefix + s,
                         suffix:   "",
                         choices:  AddPrefix(
                             _agdaLookup.ExactMatches(s).Union(_htmlLookup.ExactMatches(s)).ToList(),
@@ -483,7 +498,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         {
             results.Add(
                 item: MakeResult(
-                    prefix:   (partialResult != "" ? "⋯" : "") + searchKey,
+                    prefix:   partialResultPrefix + searchKey,
                     suffix:   _subscriptNumber(j + jStart + 1),
                     choices:  [partialResult + options[j]],
                     nextChar: [],
