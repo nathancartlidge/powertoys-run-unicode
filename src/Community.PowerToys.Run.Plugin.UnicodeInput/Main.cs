@@ -267,7 +267,6 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     public List<Result> Query(Query query)
     {
         // Clean up the raw query by discarding the keyword and trimming
-        // todo: cleanup the little numbers so they can still be recognised in a reverse query?
         var cleanedQuery = string.IsNullOrEmpty(query.ActionKeyword)
             ? query.RawQuery.Trim() // no keyword - just trim
             : query.RawQuery[query.ActionKeyword.Length..].Trim();
@@ -317,6 +316,9 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     {
         var partialResult = "";
         List<Result> results = [];
+        
+        // cleanup the little numbers where appropriate? (replace them with their big equivalents)
+        query = string.Join(null, query.Select((c, i) => (char) (c is >= '₀' and <= '₉' ? c - 8272 : c)));
         
         // Exact matching - agda has a key, we provide that key
         var exactAgdaMatches = _agdaLookup.ExactMatches(query);

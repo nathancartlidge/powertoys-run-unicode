@@ -46,6 +46,12 @@ public class UsageTests
         // regression test for issue with Unicode parsing in b1cbcdd1 
         results = main.Query(new Query("u-"));
         Assert.AreNotEqual(results.Count, 0);
+        
+        // support for little numbers (for copy-pasting suggested queries)
+        results = main.Query(new Query("l₂"));
+        titles = GetTitles(results);
+        Assert.AreNotEqual(results.Count, 0);
+        Assert.AreEqual("⇐", titles[0].Item2);
     }
 
     [TestMethod]
