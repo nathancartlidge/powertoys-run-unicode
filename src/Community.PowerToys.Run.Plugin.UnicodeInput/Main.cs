@@ -112,6 +112,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         }
         
         // the default action changes depending upon `_doTyping`, so should the prompt
+        // todo: -> "these symbols" when appropriate
         subtitleStringBuilder.Append(_doTyping ? " Input this symbol" : " Copy this symbol to the clipboard");
         if (choices.Count > 1)
         {
@@ -318,8 +319,13 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         var partialResultPrefix = "";
         List<Result> results = [];
         
+        // for numeric matching
+        var numberKey = "";
+        var numberIndex = -1;
+        var numberMatches = new List<string>();
+
         // cleanup the little numbers where appropriate? (replace them with their big equivalents)
-        query = string.Join(null, query.Select((c, i) => (char) (c is >= '₀' and <= '₉' ? c - 8272 : c)));
+        query = string.Join(null, query.Select(c => (char) (c is >= '₀' and <= '₉' ? c - 8272 : c)));
         
         // Exact matching - agda has a key, we provide that key
         var exactAgdaMatches = _agdaLookup.ExactMatches(query);
@@ -329,7 +335,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         // multiple-lookup implementation (\lambda\_2 → λ₂ or \lambda\alpha → λα)
         // if there are no exact matches AND there is a backslash within the string
         // todo: can we fetch a user-defined trigger shortcut?
-        while (exactMatches.Count == 0 && (query.Contains('\\') || query.Contains(' ')))
+        while (exactMatches.Count == 0 && (query.Contains('\\') || query.Contains(' ') || query.Contains('_') || query.Contains('^')))
         {
             // 1. find the longest substring that is a word
             var longestAgdaPartialMatch = _agdaLookup.LongestPartialMatch(query);
@@ -339,20 +345,46 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
                 : (longestHtmlPartialMatch, _htmlLookup.Get(longestHtmlPartialMatch));
 
             // 2a. if there is not a match, break out of the loop
-            if (longestPartialMatch == "" || matchedCharacter == "")
-            {
+            if (longestPartialMatch == "" || matchedCharacter == "" || longestPartialMatch.Length >= query.Length)
                 break;
-            }
             
-            // 2b. if there is a match:
-            // - prepend this matched character to all responses
-            // - remove that part of the word from the query, so it doesn't interfere with other 
+            // 2b. we want to restrict the possible values for the next character to our approved set
+            //     (' ', '\', '_', '^') or a number
+            var nextCharacter = query[longestPartialMatch.Length];
+            if (nextCharacter is not (' ' or '\\' or '_' or '^'))
+            {
+                // support numeric inputs here
+                if (matchedCharacter.Contains(' ') && nextCharacter is >= '0' and <= '9')
+                {
+                    // note that this is slightly different behaviour to the other implementation later down!
+                    // todo: review both
+                    var numberIndexString = string.Join(null,
+                        // get the longest possible consecutive string of digits from the string
+                        query[longestPartialMatch.Length..]
+                            .TakeWhile(c => c is >= '0' and <= '9')
+                    );
+                    numberIndex = int.Parse(numberIndexString) - 1;
+
+                    var matchedCharacterSplit = matchedCharacter.Split(' ');
+                    if (numberIndex >= 0 && numberIndex < matchedCharacterSplit.Length)
+                    {
+                        matchedCharacter = matchedCharacterSplit[numberIndex];
+                        longestPartialMatch += _subscriptNumber(numberIndex + 1);
+                    }
+                    else break;
+                }
+                else break;
+            } else if (matchedCharacter.Contains(' '))
+                // handle multiple character matches (eg \l), even when no index provided (take the first one)
+                matchedCharacter = matchedCharacter.Split(' ').First();
+            
+            // todo: handle unicode numerics (eg '\u03B1')
+            
             // we only reach this point if we have a match
             // 3a. prepend this matched character to all responses
             partialResult += matchedCharacter;
             partialResultPrefix += string.Concat(longestPartialMatch, ' ');
             if (partialResultPrefix.Length > 12)
-            {
                 partialResultPrefix = string.Concat(
                     "⋯",
                     partialResultPrefix.AsSpan(
@@ -360,7 +392,6 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
                         10
                     )
                 );
-            }
             
             // 3b. remove that part of the word from the query, so it doesn't interfere with other 
             query = query[longestPartialMatch.Length..].Trim();
@@ -390,7 +421,6 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         //  exactly one partial match, so we skip this step if both those conditions are met (e == 0 and p == 1)
         // These two conditions combine to give e == 0 and p <= 1. By inverting them, we get e != 0 || p > 1
         if (exactMatches.Count != 0 || partialMatches.Count > 1)
-        {
             results.Add(
                 item: MakeResult(
                     prefix:   partialResultPrefix + query,
@@ -400,14 +430,12 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
                     score:    10
                 )
             );   
-        }
 
         // HTML / Unicode Numerics
         if (query.StartsWith("&#") || query.StartsWith('#') || query.StartsWith('u') || query.StartsWith("U+"))
         {
             var htmlMatch = HtmlLookup.NumericMatch(query.Replace("U+", "#x").Replace("u", "#x"));
             if (htmlMatch != null)
-            {
                 results.Add(
                     item: MakeResult(
                         prefix:   partialResultPrefix + query,
@@ -418,20 +446,14 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
                         isHtml:   true
                     )
                 );
-            }
         }
-        
+
         // Number-indexed matching support
-        var numberKey = "";
-        var numberIndex = -1;
-        var numberMatches = new List<string>();
-        
         var match = _numberMatcher.Match(query);
         if (match.Success)
         {
             numberKey = match.Groups[1].Value;
             numberIndex = int.Parse(match.Groups[2].Value) - 1;
-
             numberMatches = _agdaLookup.ExactMatches(numberKey).Union(_htmlLookup.ExactMatches(numberKey)).ToList();
             if (0 <= numberIndex && numberIndex < numberMatches.Count)
             {

@@ -75,6 +75,7 @@ public class UsageTests
         var results = main.Query(new Query(":4"));
         var titles = GetTitles(results);
 
+        Assert.AreEqual(8, results.Count);
         Assert.AreEqual(":₄", titles[0].Item1); // we should rewrite the first part as subscript numbers
         Assert.AreEqual("\ua789", titles[0].Item2); // we should return the correct item from the list
     }
@@ -125,10 +126,43 @@ public class UsageTests
         Assert.AreNotEqual(0, results.Count);
         Assert.AreEqual("αβ", titles[0].Item2);
         
+        // special cases for completion
         // test with just a space between components
         results = main.Query(new Query("alpha beta"));
         titles = GetTitles(results);
         Assert.AreNotEqual(0, results.Count);
         Assert.AreEqual("αβ", titles[0].Item2);
+        
+        // test with just an underscore
+        results = main.Query(new Query("alpha_2"));
+        titles = GetTitles(results);
+        Assert.AreNotEqual(0, results.Count);
+        Assert.AreEqual("α₂", titles[0].Item2);
+
+        // we shouldn't allow the multi-input to trigger unintentionally - there should be a break character
+        results = main.Query(new Query("alphabeta gamma"));
+        Assert.AreEqual(0, results.Count);
+        
+        // regression test: we shouldn't return multiple options in this group
+        results = main.Query(new Query("l alpha"));
+        titles = GetTitles(results);
+        Assert.AreNotEqual(0, results.Count);
+        Assert.IsFalse(titles[0].Item2.Contains(" "));
+        
+        // we should handle numeric matches somehow
+        results = main.Query(new Query("l2 alpha"));
+        titles = GetTitles(results);
+        Assert.AreNotEqual(0, results.Count);
+        Assert.AreEqual("⇐α", titles[0].Item2);
+        
+        // test with an invalid first part
+        results = main.Query(new Query("labmda beta"));
+        Assert.AreEqual(0, results.Count);
+        
+        // regression test: `\^\j with crossed-tai` predicts weirdly
+        // results = main.Query(new Query("^\\j with crossed-tai"));
+        // titles = GetTitles(results);
+        // Assert.AreNotEqual(0, results.Count);
+        // Assert.AreEqual("\\^\\j with crossed-tail", titles[0].Item1);
     }
 }
