@@ -46,6 +46,12 @@ public class UsageTests
         // regression test for issue with Unicode parsing in b1cbcdd1 
         results = main.Query(new Query("u-"));
         Assert.AreNotEqual(results.Count, 0);
+        
+        // support for little numbers (for copy-pasting suggested queries)
+        results = main.Query(new Query("l₂"));
+        titles = GetTitles(results);
+        Assert.AreNotEqual(results.Count, 0);
+        Assert.AreEqual("⇐", titles[0].Item2);
     }
 
     [TestMethod]
@@ -71,6 +77,17 @@ public class UsageTests
 
         Assert.AreEqual(":₄", titles[0].Item1); // we should rewrite the first part as subscript numbers
         Assert.AreEqual("\ua789", titles[0].Item2); // we should return the correct item from the list
+    }
+
+    [TestMethod]
+    public void TestArrow()
+    {
+        var main = new Main();
+        var results = main.Query(new Query("alpha \u2192 α"));
+        var titles = GetTitles(results);
+
+        Assert.AreEqual("alpha", titles[0].Item1); // we should ignore the part after the arrow
+        Assert.AreEqual("α", titles[0].Item2); // we should return the correct item from the list
     }
     
     [TestMethod]

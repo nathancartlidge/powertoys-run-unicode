@@ -267,7 +267,6 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     public List<Result> Query(Query query)
     {
         // Clean up the raw query by discarding the keyword and trimming
-        // todo: cleanup the little numbers so they can still be recognised?
         var cleanedQuery = string.IsNullOrEmpty(query.ActionKeyword)
             ? query.RawQuery.Trim() // no keyword - just trim
             : query.RawQuery[query.ActionKeyword.Length..].Trim();
@@ -307,11 +306,21 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             )
             .ToList();
     }
-    
-    public List<Result> GetUnicodeSymbol(string query)
+
+    private List<Result> GetUnicodeSymbol(string query)
     {
         // todo: multiple lookup (\lambda_2 → λ₂ or \lambda\alpha → λα
         List<Result> results = [];
+        
+        // cleanup the little numbers where appropriate? (replace them with their big equivalents)
+        query = string.Join(null, query.Select((c, _) => (char) (c is >= '₀' and <= '₉' ? c - 8272 : c)));
+        
+        // clean up the little arrow, if present
+        var firstSegment = query.Split('\u2192').First().Trim();
+        if (firstSegment.Length > 0)
+        {
+            query = firstSegment;
+        }
         
         // Exact matching - agda has a key, we provide that key
         var exactAgdaMatches = _agdaLookup.ExactMatches(query);
