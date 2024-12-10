@@ -79,6 +79,17 @@ public class UsageTests
         Assert.AreEqual(":₄", titles[0].Item1); // we should rewrite the first part as subscript numbers
         Assert.AreEqual("\ua789", titles[0].Item2); // we should return the correct item from the list
     }
+
+    [TestMethod]
+    public void TestArrow()
+    {
+        var main = new Main();
+        var results = main.Query(new Query("alpha \u2192 α"));
+        var titles = GetTitles(results);
+
+        Assert.AreEqual("alpha", titles[0].Item1); // we should ignore the part after the arrow
+        Assert.AreEqual("α", titles[0].Item2); // we should return the correct item from the list
+    }
     
     [TestMethod]
     public void TestInvalidNumbers()

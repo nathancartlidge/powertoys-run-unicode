@@ -327,6 +327,13 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         // cleanup the little numbers where appropriate? (replace them with their big equivalents)
         query = string.Join(null, query.Select(c => (char) (c is >= '₀' and <= '₉' ? c - 8272 : c)));
         
+        // clean up the little arrow, if present
+        var firstSegment = query.Split('\u2192').First().Trim();
+        if (firstSegment.Length > 0)
+        {
+            query = firstSegment;
+        }
+        
         // Exact matching - agda has a key, we provide that key
         var exactAgdaMatches = _agdaLookup.ExactMatches(query);
         var exactHtmlMatches = _htmlLookup.ExactMatches(query);
