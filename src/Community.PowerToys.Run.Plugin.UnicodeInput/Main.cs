@@ -466,6 +466,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         Context = context;
         Context.API.ThemeChanged += OnThemeChanged;
         UpdateIconPath(Context.API.GetCurrentTheme());
+        DefaultBrowserInfo.UpdateIfTimePassed();
     }
 
     private void UpdateIconPath(Theme theme)
