@@ -52,5 +52,4 @@ alias that works in Agda or in your browser should also work here!
 - Initial project structure based upon [ptrun-guid](https://github.com/skttl/ptrun-guid) by `skttl`
 - GitHub CI pipeline based upon [PowerToys Run: GitKraken](https://github.com/davidegiacometti/PowerToys-Run-GitKraken) 
   by `davidegiacometti`
-- Auto-typing implementation from [InputTyper](https://github.com/CoreyHayward/PowerToys-Run-InputTyper) by
-- `CoreyHayward`
+- Auto-typing implementation from [InputTyper](https://github.com/CoreyHayward/PowerToys-Run-InputTyper) by `CoreyHayward`
