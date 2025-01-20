@@ -12,18 +12,20 @@ public class FileLoader
     public FileLoader(string configPath)
     {
         _configPath = configPath;
-        Files = FindFiles();
-        Mappings = Files.Select(f => LoadFile(f)).ToList();
+        Files = FindFiles().Select(Path.GetFileName).ToList();
+        Mappings = FindFiles().Select(LoadFile).ToList();
     }
     
     private List<string> FindFiles()
     {
         return Directory.GetFiles(_configPath)
             .ToList()
-            .FindAll(filename => filename.EndsWith(".mapping.json"));
+            .FindAll(filename => Path.GetFileName(filename).EndsWith(".mapping.json"))
+            .OrderBy(Path.GetFileName)
+            .ToList();
     }
     
-    private Dictionary<string, string> LoadFile(string filename)
+    private static Dictionary<string, string> LoadFile(string filename)
     {
         if (!File.Exists(filename) || !filename.EndsWith(".mapping.json"))
         {

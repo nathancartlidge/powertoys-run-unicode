@@ -6,12 +6,17 @@ public class BaseLookup
     private readonly Dictionary<string, string> _keyValuePairs;
     private readonly List<string> _sortedKeys;
 
-    protected BaseLookup(Dictionary<string, string> keyValuePairs)
+    public BaseLookup(Dictionary<string, string> keyValuePairs)
     {
         _keyValuePairs = keyValuePairs;
         _sortedKeys = _keyValuePairs.Keys.ToList().Order(StringComparer.Ordinal).ToList();
     }
-    
+
+    protected BaseLookup()
+    {
+        throw new NotImplementedException();
+    }
+
     public List<string> ExactMatches(string input)
     {
         if (!_keyValuePairs.ContainsKey(input)) return [];
@@ -30,7 +35,7 @@ public class BaseLookup
             .Where(kv => kv.Value.Contains(input))
             .Select(
                 kv => kv.Value.Contains(' ')
-                    ? kv.Key + GetIndex(kv.Value) // multi-select optionn
+                    ? kv.Key + GetIndex(kv.Value) // multi-select option
                     : kv.Key // single option
             );
         return matches.ToList();

@@ -13,8 +13,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
 {
     private string IconPath { get; set; }
 
-    private readonly AgdaLookup _agdaLookup = new();
-    private readonly HtmlLookup _htmlLookup = new();
+    private readonly LookupGroup _lookups;
     private readonly Typer _typer = new();
     
     private PluginInitContext Context { get; set; }
@@ -75,22 +74,29 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     
     // -----------------------------------------------------------------------------------------------------------------
     
-    private Result MakeResult(string prefix, string suffix, IReadOnlyList<string> choices,
-                              IReadOnlyList<char> nextChar, int score, bool isHtml = false)
+    private Result MakeResult(string userInput, int? resultIndex, IReadOnlyList<string> choices,
+                              IReadOnlyList<char> validNextChars, int score, bool isHtml = false)
     {
         var titleStringBuilder = new StringBuilder();
-        titleStringBuilder.Append(prefix);
-        titleStringBuilder.Append(suffix);
+        var subtitleStringBuilder = new StringBuilder();
+
+        titleStringBuilder.Append(userInput);
+        if (resultIndex is not null)
+        {
+            // to make the type checker happy
+            var value = resultIndex + 1 ?? 0;
+            titleStringBuilder.Append(_subscriptNumber(value));
+        }
         if (choices.Count == 0)
         {
             // no exact match, but there are options if you keep typing - return a hint
             return new Result
             {
-                Title = prefix + suffix,
-                SubTitle = "No match found yet - keep typing! " + _arrayToString(nextChar),
+                Title = userInput + resultIndex,
+                SubTitle = "No match found yet - keep typing! " + _arrayToString(validNextChars),
                 IcoPath = IconPath,
                 // if there is only one possible letter to be typed, this could easily get in the way
-                Score = nextChar.Count <= 1 ? score - 2 : score - 1,
+                Score = validNextChars.Count <= 1 ? score - 2 : score - 1,
                 Action = _ => false
             };
         }
@@ -98,22 +104,17 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         // we have at least one choice
         titleStringBuilder.Append(" \u2192 ");
         titleStringBuilder.Append(choices[0]);
-
-        var subtitleStringBuilder = new StringBuilder();
-        var agdaGet = _agdaLookup.Get(prefix);
-        var htmlGet = _htmlLookup.Get(prefix);
-        if (agdaGet != null && agdaGet.Contains(choices[0]))
+        
+        // get the source of this symbol
+        var sources = _lookups.GetLookupSources(userInput, choices[0]);
+        if (sources.Length != 0)
         {
-            subtitleStringBuilder.Append('\u25e2');
-        }
-        if (isHtml || (htmlGet != null && htmlGet.Contains(choices[0])))
-        {
-            subtitleStringBuilder.Append('\u26ca');
+            subtitleStringBuilder.Append(sources + ' ');
         }
         
         // the default action changes depending upon `_doTyping`, so should the prompt
         // todo: -> "these symbols" when appropriate
-        subtitleStringBuilder.Append(_doTyping ? " Input this symbol" : " Copy this symbol to the clipboard");
+        subtitleStringBuilder.Append(_doTyping ? "Input this symbol" : "Copy this symbol to the clipboard");
         if (choices.Count > 1)
         {
             subtitleStringBuilder.Append(" -- ");
@@ -122,10 +123,10 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             subtitleStringBuilder.Append(" variations available!]");
         }
 
-        if (nextChar.Count != 0)
+        if (validNextChars.Count != 0)
         {
             subtitleStringBuilder.Append(" -- ");
-            subtitleStringBuilder.Append(_arrayToString(nextChar));
+            subtitleStringBuilder.Append(_arrayToString(validNextChars));
         }
             
         return new Result
@@ -282,11 +283,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     private List<Result> GetAsciiPrompt(string query)
     {
         // Exact matching - agda has a key, we provide that key
-        var agdaMatches = _agdaLookup.ReverseMatch(query);
-        var htmlMatches = _htmlLookup.ReverseMatch(query);
-        var matches = agdaMatches.Union(htmlMatches)
-            .OrderBy(key => key.Any(char.IsDigit))
-            .ThenBy(key => key.Length)
+        var matches =  _lookups.ReverseMatch(query)
             .Take(MaxResults)
             .ToList();
 
@@ -298,10 +295,10 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         return matches
             .Select(
                 match => MakeResult(
-                    prefix: match,
-                    suffix: "",
+                    userInput: match,
+                    resultIndex: null,
                     choices: [query],
-                    nextChar: [],
+                    validNextChars: [],
                     score: 1
                 )
             )
@@ -335,9 +332,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         }
         
         // Exact matching - agda has a key, we provide that key
-        var exactAgdaMatches = _agdaLookup.ExactMatches(query);
-        var exactHtmlMatches = _htmlLookup.ExactMatches(query);
-        var exactMatches = exactAgdaMatches.Union(exactHtmlMatches).ToList();
+        var exactMatches = _lookups.ExactMatches(query);
         
         // multiple-lookup implementation (\lambda\_2 → λ₂ or \lambda\alpha → λα)
         // if there are no exact matches AND there is a backslash within the string
@@ -345,14 +340,11 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         while (exactMatches.Count == 0 && (query.Contains('\\') || query.Contains(' ') || query.Contains('_') || query.Contains('^')))
         {
             // 1. find the longest substring that is a word
-            var longestAgdaPartialMatch = _agdaLookup.LongestPartialMatch(query);
-            var longestHtmlPartialMatch = _htmlLookup.LongestPartialMatch(query);
-            var (longestPartialMatch, matchedCharacter) = longestAgdaPartialMatch.Length > longestHtmlPartialMatch.Length
-                ? (longestAgdaPartialMatch, _agdaLookup.Get(longestAgdaPartialMatch))
-                : (longestHtmlPartialMatch, _htmlLookup.Get(longestHtmlPartialMatch));
+            var longestPartialMatch = _lookups.LongestPartialMatch(query);
+            var matchedCharacter = _lookups.Get(longestPartialMatch);
 
             // 2a. if there is not a match, break out of the loop
-            if (longestPartialMatch == "" || matchedCharacter == "" || longestPartialMatch.Length >= query.Length)
+            if (longestPartialMatch == "" || matchedCharacter == null || longestPartialMatch.Length >= query.Length)
                 break;
             
             // 2b. we want to restrict the possible values for the next character to our approved set
@@ -406,20 +398,11 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             
             // 4. loop
             // Exact matching - agda has a key, we provide that key
-            exactAgdaMatches = _agdaLookup.ExactMatches(query);
-            exactHtmlMatches = _htmlLookup.ExactMatches(query);
-            exactMatches = exactAgdaMatches.Union(exactHtmlMatches).ToList();
+            exactMatches = _lookups.ExactMatches(query);
         }
         
         // partial matching
-        var (validAgdaChars, partialAgdaMatches) = _agdaLookup.PartialMatches(query);
-        var (validHtmlChars, partialHtmlMatches) = _htmlLookup.PartialMatches(query);
-        
-        var validChars = validAgdaChars.Union(validHtmlChars).Order().ToList();
-        var partialMatches = partialAgdaMatches.Union(partialHtmlMatches)
-            .OrderBy(key => !key.StartsWith(query)) // prioritise terms that start with our query
-            .ThenBy(key => key.Length) // then order by length - Hanlon's razor, we probably want the short option
-            .ToList();
+        var (validChars, partialMatches) = _lookups.PartialMatches(query);
 
         // In the case where we have nothing useful to add (e == 0 and p == 0), we should avoid polluting the list
         //  of results (e == 0 and p == 0)
@@ -430,10 +413,10 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         if (exactMatches.Count != 0 || partialMatches.Count > 1)
             results.Add(
                 item: MakeResult(
-                    prefix:   partialResultPrefix + query,
-                    suffix:   "",
+                    userInput:   partialResultPrefix + query,
+                    resultIndex: null,
                     choices:  AddPrefix(exactMatches, partialResult),
-                    nextChar: validChars,
+                    validNextChars: validChars,
                     score:    10
                 )
             );   
@@ -445,10 +428,10 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
             if (htmlMatch != null)
                 results.Add(
                     item: MakeResult(
-                        prefix:   partialResultPrefix + query,
-                        suffix:   "",
+                        userInput:   partialResultPrefix + query,
+                        resultIndex: null,
                         choices:  [partialResult + htmlMatch],
-                        nextChar: [],
+                        validNextChars: [],
                         score:    1,
                         isHtml:   true
                     )
@@ -461,15 +444,15 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         {
             numberKey = match.Groups[1].Value;
             numberIndex = int.Parse(match.Groups[2].Value) - 1;
-            numberMatches = _agdaLookup.ExactMatches(numberKey).Union(_htmlLookup.ExactMatches(numberKey)).ToList();
+            numberMatches = _lookups.ExactMatches(numberKey);
             if (0 <= numberIndex && numberIndex < numberMatches.Count)
             {
                 results.Add(
                     item: MakeResult(
-                        prefix:   partialResultPrefix + numberKey,
-                        suffix:   _subscriptNumber(numberIndex + 1),
-                        choices:  [partialResult + numberMatches[numberIndex]],
-                        nextChar: [],
+                        userInput:      partialResultPrefix + numberKey,
+                        resultIndex:    numberIndex,
+                        choices:        [partialResult + numberMatches[numberIndex]],
+                        validNextChars: [],
                         score:    1
                     )
                 );
@@ -485,13 +468,13 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
                 .Take(remainingSlots)
                 .Select(s =>
                     MakeResult(
-                        prefix:   partialResultPrefix + s,
-                        suffix:   "",
+                        userInput:   partialResultPrefix + s,
+                        resultIndex: null,
                         choices:  AddPrefix(
-                            _agdaLookup.ExactMatches(s).Union(_htmlLookup.ExactMatches(s)).ToList(),
+                            _lookups.ExactMatches(s),
                             partialResult
                         ),
-                        nextChar: [],
+                        validNextChars: [],
                         score:    partialMatches.Count == 1 ? 0 : -1
                     )
                 )
@@ -527,10 +510,10 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         {
             results.Add(
                 item: MakeResult(
-                    prefix:   partialResultPrefix + searchKey,
-                    suffix:   _subscriptNumber(j + jStart + 1),
-                    choices:  [partialResult + options[j]],
-                    nextChar: [],
+                    userInput:      partialResultPrefix + searchKey,
+                    resultIndex:    j + jStart,
+                    choices:        [partialResult + options[j]],
+                    validNextChars: [],
                     score:    -1
                 )
             );
