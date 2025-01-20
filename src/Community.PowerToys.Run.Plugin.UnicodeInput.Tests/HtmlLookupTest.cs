@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,7 +9,7 @@ namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
 [TestSubject(typeof(HtmlLookup))]
 public class HtmlLookupTest
 {
-    private readonly HtmlLookup _lookup = new();
+    private readonly HtmlLookup _lookup = new(new Dictionary<string, string>());
 
     [TestMethod]
     public void TestNumber()

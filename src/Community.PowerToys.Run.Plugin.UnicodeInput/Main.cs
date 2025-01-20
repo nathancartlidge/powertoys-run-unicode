@@ -279,6 +279,13 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
 
     public List<Result> Query(Query query)
     {
+        if (_lookups == null)
+        {
+            // we cannot function if lookups failed
+            // todo: just in case, maybe make this an explicit error message?
+            return [];
+        }
+        
         // Clean up the raw query by discarding the keyword and trimming
         var cleanedQuery = string.IsNullOrEmpty(query.ActionKeyword)
             ? query.RawQuery.Trim() // no keyword - just trim

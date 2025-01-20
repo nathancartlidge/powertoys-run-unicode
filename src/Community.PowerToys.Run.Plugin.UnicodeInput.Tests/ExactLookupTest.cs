@@ -1,14 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
 
 [TestClass]
-[TestSubject(typeof(AgdaLookup))]
+[TestSubject(typeof(BaseLookup))]
 public class ExactLookupTest
 {
-    private readonly AgdaLookup _lookup = new();
+    private readonly BaseLookup _lookup = new(new Dictionary<string, string>
+    {
+        { "_2", "₂" },
+        { "^\\turned r with long leg and retroflex hook", "𐞧" },
+        { ":", "\u2236 \u2982 ː \ua789 \u02f8 ፥ ፦ ： ﹕ ︓ \u2005"}
+    });
     
     [TestMethod]
     public void TestSimpleMatch()

@@ -6,8 +6,9 @@ public class LookupGroup
 {
     private readonly Dictionary<char, BaseLookup> _mappings;
 
-    private static char _symbolFromNumber(int input)
+    public static char SymbolFromNumber(int input)
     {
+        // input is assumed to be at least 1
         // see https://unicodeplus.com/decomposition/Circle
         return input switch
         {
@@ -22,7 +23,7 @@ public class LookupGroup
         Dictionary<string, string> htmlLookup)
     {
         var userMappings = mappings
-            .Select((mapping, index) => (_symbolFromNumber(index), new BaseLookup(mapping)))
+            .Select((mapping, index) => (SymbolFromNumber(index + 1), new BaseLookup(mapping)))
             .ToDictionary(v => v.Item1, v => v.Item2);
         
         // add in the default mapping sets with their specialised symbols:

@@ -11,6 +11,8 @@ namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
 [TestSubject(typeof(Main))]
 public class UsageTests
 {
+    private const string Directory = @"..\..\..\..\Community.PowerToys.Run.Plugin.UnicodeInput";
+
     private static List<Tuple<string, string>> GetTitles(List<Result> results)
     {
         return results
@@ -23,7 +25,7 @@ public class UsageTests
     [TestMethod]
     public void TestBasicQueries()
     {
-        var main = new Main();
+        var main = new Main(Directory);
 
         var results = main.Query(new Query("emptyset"));
         var titles = GetTitles(results);
@@ -57,7 +59,7 @@ public class UsageTests
     [TestMethod]
     public void TestReverseQueries()
     {
-        var main = new Main();
+        var main = new Main(Directory);
         
         var results = main.Query(new Query("λ"));
         var titles = GetTitles(results);
@@ -69,7 +71,7 @@ public class UsageTests
     [TestMethod]
     public void TestNumber()
     {
-        var main = new Main();
+        var main = new Main(Directory);
 
         // "∶ ⦂ ː ꞉ ˸ ፥ ፦ ： ﹕ ︓  "
         var results = main.Query(new Query(":4"));
@@ -83,7 +85,7 @@ public class UsageTests
     [TestMethod]
     public void TestArrow()
     {
-        var main = new Main();
+        var main = new Main(Directory);
         var results = main.Query(new Query("alpha \u2192 α"));
         var titles = GetTitles(results);
 
@@ -95,7 +97,7 @@ public class UsageTests
     public void TestInvalidNumbers()
     {
         // out-of-bounds indexing
-        var main = new Main();
+        var main = new Main(Directory);
         
         // too small - we should skip to the next valid item (1)
         var results = main.Query(new Query(":0"));
@@ -119,7 +121,7 @@ public class UsageTests
     [TestMethod]
     public void TestMultiple()
     {
-        var main = new Main();
+        var main = new Main(Directory);
         
         var results = main.Query(new Query("alpha\\beta\\gamma"));
         var titles = GetTitles(results);

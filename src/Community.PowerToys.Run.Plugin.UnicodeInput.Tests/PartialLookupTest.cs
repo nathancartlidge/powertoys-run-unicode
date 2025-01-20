@@ -4,11 +4,17 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
 
 [TestClass]
-[TestSubject(typeof(AgdaLookup))]
+[TestSubject(typeof(BaseLookup))]
 public class PartialLookupTest
 {
-    private readonly AgdaLookup _lookup = new();
+    private readonly FileLoader _loader = new(@"..\..\..\..\Community.PowerToys.Run.Plugin.UnicodeInput");
+    private readonly BaseLookup _lookup;
 
+    public PartialLookupTest()
+    {
+        _lookup = new BaseLookup(_loader.AgdaMapping);
+    }
+    
     [TestMethod]
     public void TestPartialSingleMatch()
     {
