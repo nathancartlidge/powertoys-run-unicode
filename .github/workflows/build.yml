@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+*"
 
 permissions:
   contents: write
@@ -12,6 +12,7 @@ permissions:
   attestations: write
 
 env:
+  MAPPINGS_PATH: src\Community.PowerToys.Run.Plugin.UnicodeInput
   OUTPUT_PATH: src\Community.PowerToys.Run.Plugin.UnicodeInput\bin
   PLUGIN_NAME: UnicodeInput
 
@@ -54,6 +55,8 @@ jobs:
       - name: Prepare the artifacts
         run: |
           Remove-Item -Path ${{ env.OUTPUT_PATH }}\* -Recurse -Include *.xml, *.pdb, PowerToys.*, Wox.*
+          Copy-Item -Path ${{ env.MAPPINGS_PATH}}\html.mapping.json -Destination ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\UnicodeInput
+          Copy-Item -Path ${{ env.MAPPINGS_PATH}}\agda.mapping.json -Destination ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\UnicodeInput
           Move-Item -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\Release -Destination ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\UnicodeInput
           Compress-Archive -Path ${{ env.OUTPUT_PATH }}\${{ matrix.platform }}\UnicodeInput -DestinationPath "${{ env.PLUGIN_NAME }}-${{ env.PLUGIN_VERSION }}-${{ matrix.platform }}.zip"
 
