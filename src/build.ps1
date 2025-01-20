@@ -32,6 +32,10 @@ if (Test-Path "~\AppData\Local\Microsoft\PowerToys\PowerToys Run") {
     cp -Recurse "Community.PowerToys.Run.Plugin.UnicodeInput\bin\x64\Release\images"      "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
     cp          "Community.PowerToys.Run.Plugin.UnicodeInput\bin\x64\Release\plugin.json" "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
     
+    cp "Community.PowerToys.Run.Plugin.UnicodeInput\html.mapping.json" "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+    cp "Community.PowerToys.Run.Plugin.UnicodeInput\agda.mapping.json" "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+    cp "Community.PowerToys.Run.Plugin.UnicodeInput\test.mapping.json" "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+
     Start-Sleep -Milliseconds 100
     
     echo "Install Complete, launching PowerToys";

@@ -18,19 +18,20 @@ public class LookupGroup
         };
     }
     
-    protected LookupGroup(List<Dictionary<string, string>> mappings, BaseLookup agdaLookup, HtmlLookup htmlLookup)
+    public LookupGroup(List<Dictionary<string, string>> mappings, Dictionary<string, string> agdaLookup,
+        Dictionary<string, string> htmlLookup)
     {
         var userMappings = mappings
             .Select((mapping, index) => (_symbolFromNumber(index), new BaseLookup(mapping)))
             .ToDictionary(v => v.Item1, v => v.Item2);
         
         // add in the default mapping sets with their specialised symbols:
-        userMappings['\u25e2'] = agdaLookup;
-        userMappings['\u26ca'] = htmlLookup;
+        userMappings['\u25e2'] = new BaseLookup(agdaLookup);
+        userMappings['\u26ca'] = new HtmlLookup(htmlLookup);
 
         _mappings = userMappings;
     }
-
+    
     public string GetLookupSources(string exactQuery, string result)
     {
         // returns a list of all symbols that have a matching lookup

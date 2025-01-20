@@ -13,7 +13,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
 {
     private string IconPath { get; set; }
 
-    private readonly LookupGroup _lookups;
+    private LookupGroup _lookups;
     private readonly Typer _typer = new();
     
     private PluginInitContext Context { get; set; }
@@ -30,6 +30,17 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     // user-configurable variables
     private bool _doTyping;
     private int _typeDelay;
+
+    public Main()
+    {
+        _lookups = null;
+    }
+    
+    public Main(string directory)
+    {
+        var loader = new FileLoader(directory);
+        _lookups = new LookupGroup(loader.Mappings, loader.AgdaMapping, loader.HtmlMapping);
+    }
     
     // ReSharper disable once UnusedMember.Global
     public IEnumerable<PluginAdditionalOption> AdditionalOptions => new List<PluginAdditionalOption>()
@@ -255,7 +266,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     private static partial Regex NumberMatcherRegex();
 
     private readonly Regex _numberMatcher = NumberMatcherRegex();
-    
+
     private static string _subscriptNumber(int i)
     {
         var output = new StringBuilder();
@@ -527,6 +538,9 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         Context = context;
         Context.API.ThemeChanged += OnThemeChanged;
         UpdateIconPath(Context.API.GetCurrentTheme());
+
+        var loader = new FileLoader(Context.CurrentPluginMetadata.PluginDirectory);
+        _lookups = new LookupGroup(loader.Mappings, loader.AgdaMapping, loader.HtmlMapping);
     }
 
     private void UpdateIconPath(Theme theme)

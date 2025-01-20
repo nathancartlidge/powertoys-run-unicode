@@ -1,7 +1,7 @@
 #nullable enable
 namespace Community.PowerToys.Run.Plugin.UnicodeInput;
 
-public class HtmlLookup: BaseLookup
+public class HtmlLookup(Dictionary<string, string> mappings) : BaseLookup(mappings)
 {
     private static string RemoveHtml(string key)
     {
