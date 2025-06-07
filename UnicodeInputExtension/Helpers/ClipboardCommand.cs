@@ -7,7 +7,7 @@ namespace UnicodeInputExtension.Helpers
     {
         private readonly string _data;
 
-        public CommandResult Result { get; } = CommandResult.KeepOpen();
+        private CommandResult Result { get; } = CommandResult.Hide();
 
         public ClipboardCommand(string data)
         {

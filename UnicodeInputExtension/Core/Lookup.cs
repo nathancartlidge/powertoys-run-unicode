@@ -214,7 +214,7 @@ public partial class Lookup
         // These two conditions combine to give e == 0 and p <= 1. By inverting them, we get e != 0 || p > 1
         if (exactMatches.Count != 0 || partialMatches.Count > 1)
         {
-            var matches = exactMatches.Concat(partialMatches).ToList();
+            var matches = exactMatches.Count > 0 ? exactMatches : partialMatches;
             results.Add(
                 item: new Result(
                     UserInput: partialResultPrefix + query,

@@ -70,47 +70,50 @@ public class ListItemHelper
         var icon = IconHelpers.FromRelativePath("Assets\\logo.png");
         if (!result.Sources.Contains(LookupGroup.AgdaSource))
         {
-            icon = IconHelpers.FromRelativePath(result.Sources.Contains(LookupGroup.HtmlSource) 
+            icon = IconHelpers.FromRelativePath(result.Sources.Length > 0 && result.Sources.Contains(LookupGroup.HtmlSource) 
                 ? "Assets\\logo-html.png" 
                 : "Assets\\logo-custom.png");
         }
         
         subtitle.Append(result.Sources);
 
-        // todo: this doesn't support multi-character shortcuts!
-        var resultCharacter = char.ConvertToUtf32(result.Choices[0], 0);
-        var resultCodepoint = $"\\u{resultCharacter:X4}";
-        
-        IContextItem[] moreCommands = [
-            new CommandContextItem(new ClipboardCommand(resultCodepoint, "Copy Codepoint"))
-            {
-                Title = "Copy Codepoint",
-                Icon = new IconInfo("\uE8C8"),
-                RequestedShortcut = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: VirtualKey.C)
-            },
-            new CommandContextItem(new OpenUrlCommand($"https://https://unicodeplus.com/U+{resultCharacter:X4}"))
-            {
-                Title = "Character Information",
-                Icon = new IconInfo("\uE721"),
-                RequestedShortcut = KeyChordHelpers.FromModifiers(ctrl: true, vkey: VirtualKey.O)
-            }
-        ];
-        
+        List<IContextItem> moreCommands = [];
+        if (result.Choices[0].Length == 1)
+        {
+            var resultCharacter = char.ConvertToUtf32(result.Choices[0], 0);
+            var resultCodepoint = $"\\u{resultCharacter:X4}";
+
+            moreCommands = [
+                new CommandContextItem(new ClipboardCommand(resultCodepoint, "Copy Codepoint"))
+                {
+                    Title = "Copy Codepoint",
+                    Icon = new IconInfo("\uE8C8"),
+                    RequestedShortcut = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: VirtualKey.C)
+                },
+                new CommandContextItem(new OpenUrlCommand($"https://https://unicodeplus.com/U+{resultCharacter:X4}"))
+                {
+                    Title = "Character Information",
+                    Icon = new IconInfo("\uE721"),
+                    RequestedShortcut = KeyChordHelpers.FromModifiers(ctrl: true, vkey: VirtualKey.O)
+                }
+            ];
+        }
         
         if (result.Choices.Count > 1)
         {
-            subtitle.Append(" — [");
+            if (subtitle.Length != 0) { subtitle.Append(" — "); }
+            subtitle.Append('[');
             subtitle.Append(result.Choices.Count);
             subtitle.Append(" variants available!]");
-            moreCommands = [
-                new CommandContextItem(new UnicodeInputDetailsExtensionPage(result.Choices))
-                    { Title = "See All Variants" }
-            ];
+            moreCommands.Insert(0,
+                new CommandContextItem(new UnicodeInputDetailsExtensionPage(result.Choices)) 
+                    { Title = $"View {result.Choices.Count} Variants" }
+            );
         }
 
         if (result.ValidNextChars.Count != 0)
         {
-            subtitle.Append(" — ");
+            if (subtitle.Length != 0) { subtitle.Append(" — "); }
             subtitle.Append(_arrayToString(result.ValidNextChars));
         }
         
@@ -122,7 +125,7 @@ public class ListItemHelper
             Subtitle = subtitle.ToString(),
             Icon = icon,
             TextToSuggest = result.UserInput,
-            MoreCommands = moreCommands,
+            MoreCommands = moreCommands.ToArray(),
         };
     }
 }
