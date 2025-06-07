@@ -2,7 +2,7 @@
 
 namespace UnicodeInputExtension.Core;
 
-public struct Result(
+public record struct Result(
     string UserInput,
     int? ResultIndex,
     List<string> Choices,

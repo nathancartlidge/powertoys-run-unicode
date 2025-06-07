@@ -2,8 +2,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace UnicodeInputExtension.Core;
+
+// pre-defined JSON Serialisation approach, to prevent reflection issues
+[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default)]
+[JsonSerializable(typeof(Dictionary<string, string>))]
+internal partial class FileLoaderJsonContext : JsonSerializerContext
+{
+}
 
 public class FileLoader
 {
@@ -42,7 +50,9 @@ public class FileLoader
         }
 
         var jsonContent = File.ReadAllText(filename);
-        return JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent) 
-               ?? new Dictionary<string, string>();
+        return JsonSerializer.Deserialize(
+                   jsonContent,
+                   FileLoaderJsonContext.Default.DictionaryStringString
+               ) ?? new Dictionary<string, string>();
     }
 }

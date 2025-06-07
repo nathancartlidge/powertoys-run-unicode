@@ -4,6 +4,7 @@
 
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
+using UnicodeInputExtension.Pages;
 
 namespace UnicodeInputExtension;
 
