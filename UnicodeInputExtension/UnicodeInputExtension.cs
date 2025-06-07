@@ -9,7 +9,7 @@ using Microsoft.CommandPalette.Extensions;
 
 namespace UnicodeInputExtension;
 
-[Guid("ba9a1c1e-81aa-4266-9635-d9595c997420")]
+[Guid("4e62f040-eb0f-4fa4-9d83-9656f7bb583d")]
 public sealed partial class UnicodeInputExtension : IExtension, IDisposable
 {
     private readonly ManualResetEvent _extensionDisposedEvent;
