@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using UnicodeInputExtension.Core;
+using UnicodeInputExtension.Helpers;
 
 namespace UnicodeInputExtension.Pages;
 
@@ -28,7 +29,7 @@ internal sealed partial class UnicodeInputExtensionPage : DynamicListPage
         Name = "Open";
         _lookup = new Lookup(
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mappings/"),
-            5);
+            10);
         
         _emptyItem = new ListItem(new NoOpCommand())
         {
@@ -58,13 +59,67 @@ internal sealed partial class UnicodeInputExtensionPage : DynamicListPage
         return sb.ToString();
     }
 
-    private static ListItem MakeItem(Result result)
+    private static string _subscriptNumber(int i)
     {
-        return new ListItem(new NoOpCommand())
+        var output = new StringBuilder();
+        foreach (var c in i.ToString())
         {
-            Title = result.UserInput + " -> " + result.Choices[0],
-            Subtitle = _arrayToString(result.ValidNextChars),
-            Icon = IconHelpers.FromRelativePath("Assets\\logo.png"),
+            output.Append((char) (c + 8272));
+        }
+        return output.ToString();
+    }
+    
+    private ListItem _makeItem(Result result)
+    {
+        var title = new StringBuilder();
+        var subtitle = new StringBuilder();
+        
+        title.Append(result.UserInput);
+        if (result.ResultIndex is not null)
+        {
+            var value = result.ResultIndex + 1 ?? 0;
+            title.Append(_subscriptNumber(value));
+        }
+
+        if (result.Choices.Count == 0)
+        {
+            // no exact matches available, but if you keep typing there are possible matches
+            return new ListItem(new NoOpCommand())
+            {
+                Title = title.ToString(),
+                Subtitle = "No match found yet; keep typing! " + _arrayToString(result.ValidNextChars),
+                Icon = IconHelpers.FromRelativePath("Assets\\logo.png"),
+                
+            };
+        }
+        
+        // if we have got to this point, we must have at least one choice - show it!
+        title.Append(" \u2192 ");
+        title.Append(result.Choices[0]);
+        
+        var sources = _lookup.GetLookupSources(result.UserInput, result.Choices[0]);
+        subtitle.Append(sources);
+        
+        if (result.Choices.Count > 1)
+        {
+            subtitle.Append(" — [");
+            subtitle.Append(result.Choices.Count);
+            subtitle.Append(" variants available!]");
+        }
+
+        if (result.ValidNextChars.Count != 0)
+        {
+            subtitle.Append(" — ");
+            subtitle.Append(_arrayToString(result.ValidNextChars));
+        }
+        
+        return new ListItem(new ClipboardCommand(result.Choices[0]))
+        {
+            Title = title.ToString(),
+            Subtitle = subtitle.ToString(),
+            Icon = result.IsHtml ? IconHelpers.FromRelativePath("Assets\\logo-html.png") 
+                : IconHelpers.FromRelativePath("Assets\\logo.png"),
+            TextToSuggest = "keep typing!" // todo: what actually is this?
         };
     }
     
@@ -96,7 +151,7 @@ internal sealed partial class UnicodeInputExtensionPage : DynamicListPage
                 _items.AddRange(
                     results
                         .Where(result => result.Choices.Count > 0)
-                        .Select(MakeItem)
+                        .Select(_makeItem)
                 );
             }
             RaiseItemsChanged(_items.Count);

@@ -62,6 +62,11 @@ public partial class Lookup
             GetUnicodeSymbol(cleanedQuery);
     }
 
+    public string GetLookupSources(string exactQuery, string result)
+    {
+        return _lookups?.GetLookupSources(exactQuery, result) ?? "";
+    } 
+    
     private List<Result> GetAsciiPrompt(string query)
     {
         if (_lookups == null)
