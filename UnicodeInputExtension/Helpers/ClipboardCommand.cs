@@ -7,12 +7,19 @@ namespace UnicodeInputExtension.Helpers
     {
         private readonly string _data;
 
-        public CommandResult Result { get; set; } = CommandResult.KeepOpen();
+        public CommandResult Result { get; } = CommandResult.KeepOpen();
 
         public ClipboardCommand(string data)
         {
             _data = data;
-            Name = "Copy to clipboard";
+            Name = "Copy Symbol";
+            Icon = new IconInfo("\uE8C8");
+        }
+        
+        public ClipboardCommand(string data, string name)
+        {
+            _data = data;
+            Name = name;
             Icon = new IconInfo("\uE8C8");
         }
         

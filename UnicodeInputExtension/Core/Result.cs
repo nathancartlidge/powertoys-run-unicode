@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+
 namespace UnicodeInputExtension.Core;
 
 public record struct Result(
@@ -8,5 +9,5 @@ public record struct Result(
     List<string> Choices,
     List<char> ValidNextChars,
     int Score,
-    bool IsHtml = false
+    string Sources
 );

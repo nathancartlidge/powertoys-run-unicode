@@ -5,6 +5,9 @@ namespace UnicodeInputExtension.Core;
 
 public class LookupGroup
 {
+    public const char AgdaSource = '\u26ca';
+    public const char HtmlSource = '\u25e2';
+    
     private readonly Dictionary<char, BaseLookup> _mappings;
 
     public static char SymbolFromNumber(int input)
@@ -28,8 +31,8 @@ public class LookupGroup
             .ToDictionary(v => v.Item1, v => v.Item2);
         
         // add in the default mapping sets with their specialised symbols:
-        userMappings['\u25e2'] = new BaseLookup(agdaLookup);
-        userMappings['\u26ca'] = new HtmlLookup(htmlLookup);
+        userMappings[AgdaSource] = new BaseLookup(agdaLookup);
+        userMappings[HtmlSource] = new HtmlLookup(htmlLookup);
 
         _mappings = userMappings;
     }

@@ -93,7 +93,8 @@ public partial class Lookup
                     ResultIndex: null,
                     Choices: [query],
                     ValidNextChars: [],
-                    Score: 1
+                    Score: 1,
+                    Sources: _lookups.GetLookupSources(match, query)
                 )
             )
             .ToList();
@@ -212,15 +213,19 @@ public partial class Lookup
         //  exactly one partial match, so we skip this step if both those conditions are met (e == 0 and p == 1)
         // These two conditions combine to give e == 0 and p <= 1. By inverting them, we get e != 0 || p > 1
         if (exactMatches.Count != 0 || partialMatches.Count > 1)
+        {
+            var matches = exactMatches.Concat(partialMatches).ToList();
             results.Add(
                 item: new Result(
-                    UserInput:   partialResultPrefix + query,
+                    UserInput: partialResultPrefix + query,
                     ResultIndex: null,
-                    Choices:  AddPrefix(exactMatches, partialResult),
+                    Choices: AddPrefix(matches, partialResult),
                     ValidNextChars: validChars,
-                    Score:    10
+                    Score: 10,
+                    Sources: _lookups.GetLookupSources(query, matches[0])
                 )
-            );   
+            );
+        }
 
         // HTML / Unicode Numerics
         if (query.StartsWith("&#", StringComparison.InvariantCulture) || query.StartsWith('#') || 
@@ -235,7 +240,7 @@ public partial class Lookup
                         Choices:  [partialResult + htmlMatch],
                         ValidNextChars: [],
                         Score:    1,
-                        IsHtml:   true
+                        Sources: LookupGroup.HtmlSource.ToString()
                     )
                 );
         }
@@ -255,7 +260,8 @@ public partial class Lookup
                         ResultIndex:    numberIndex,
                         Choices:        [partialResult + numberMatches[numberIndex]],
                         ValidNextChars: [],
-                        Score:    1
+                        Score:    1,
+                        Sources: _lookups.GetLookupSources(numberKey, numberMatches[numberIndex])
                     )
                 );
             }
@@ -277,7 +283,8 @@ public partial class Lookup
                             partialResult
                         ),
                         ValidNextChars: [],
-                        Score:    partialMatches.Count == 1 ? 0 : -1
+                        Score:    partialMatches.Count == 1 ? 0 : -1,
+                        Sources: _lookups.GetLookupSources(s, _lookups.ExactMatches(s)[0])
                     )
                 )
         );
@@ -316,7 +323,8 @@ public partial class Lookup
                     ResultIndex:    j + jStart,
                     Choices:        [partialResult + options[j]],
                     ValidNextChars: [],
-                    Score:    -1
+                    Score:    -1,
+                    Sources: _lookups.GetLookupSources(searchKey, options[j])
                 )
             );
         }
