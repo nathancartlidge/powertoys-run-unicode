@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "UnicodeInputExtension (Package)": {
+      "commandName": "MsixPackage",
+      "doNotLaunchApp": true
+    },
+    "UnicodeInputExtension (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
