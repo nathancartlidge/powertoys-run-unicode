@@ -90,7 +90,7 @@ public class ListItemHelper
                     Icon = new IconInfo("\uE8C8"),
                     RequestedShortcut = KeyChordHelpers.FromModifiers(ctrl: true, shift: true, vkey: VirtualKey.C)
                 },
-                new CommandContextItem(new OpenUrlCommand($"https://https://unicodeplus.com/U+{resultCharacter:X4}"))
+                new CommandContextItem(new OpenUrlCommand($"https://unicodeplus.com/U+{resultCharacter:X4}"))
                 {
                     Title = "Character Information",
                     Icon = new IconInfo("\uE721"),
