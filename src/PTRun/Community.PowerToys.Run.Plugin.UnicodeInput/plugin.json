@@ -1,0 +1,14 @@
+{
+  "ID": "778f24fc48714097b30303f83d5bed6a",
+  "Disabled": false,
+  "ActionKeyword": "\\",
+  "Name": "Unicode Input",
+  "Author": "nathancartlidge",
+  "Version": "1.4.0-BETA",
+  "Language": "csharp",
+  "Website": "https://github.com/nathancartlidge/powertoys-run-unicode",
+  "ExecuteFileName": "Community.PowerToys.Run.Plugin.UnicodeInput.dll",
+  "IsGlobal": true,
+  "IcoPathDark": "images\\agda.dark.png",
+  "IcoPathLight": "images\\agda.light.png"
+}
