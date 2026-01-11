@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace UnicodeInputExtension.Core;
+namespace UnicodeInput.Core;
 
 public partial class Lookup
 {

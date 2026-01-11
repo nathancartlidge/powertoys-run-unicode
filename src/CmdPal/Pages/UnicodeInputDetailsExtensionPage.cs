@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
-using UnicodeInputExtension.Core;
+using UnicodeInput.Core;
 using UnicodeInputExtension.Helpers;
 
 namespace UnicodeInputExtension.Pages;

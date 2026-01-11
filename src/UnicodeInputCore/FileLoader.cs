@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace UnicodeInputExtension.Core;
+namespace UnicodeInput.Core;
 
 // pre-defined JSON Serialisation approach, to prevent reflection issues
 [JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default)]

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace UnicodeInputExtension.Core;
+namespace UnicodeInput.Core;
 
 public class LookupGroup
 {
@@ -44,6 +44,7 @@ public class LookupGroup
         var sources = _mappings
             .Where(i => (i.Value.Get(exactQuery) ?? "").Contains(result))
             .Select(i => i.Key)
+            .OrderBy(k => k)
             .ToList();
         return string.Concat(sources);
     }

@@ -2,13 +2,15 @@ using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wox.Plugin;
 
+using UnicodeInput.Core;
+
 namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
 
 [TestClass]
 [TestSubject(typeof(FileLoader))]
 public class FileLoaderTests
 {
-    private const string Directory = @"..\..\..\..\Community.PowerToys.Run.Plugin.UnicodeInput";
+    private const string Directory = ".";
 
     [TestMethod]
     public void TestBasicQueries()

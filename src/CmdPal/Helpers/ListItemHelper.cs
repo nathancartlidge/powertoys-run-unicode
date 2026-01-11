@@ -4,7 +4,7 @@ using System.Text;
 using Windows.System;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
-using UnicodeInputExtension.Core;
+using UnicodeInput.Core;
 using UnicodeInputExtension.Pages;
 
 namespace UnicodeInputExtension.Helpers;

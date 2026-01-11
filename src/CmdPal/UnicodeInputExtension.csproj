@@ -4,8 +4,8 @@
     <RootNamespace>UnicodeInputExtension</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
 
-    <WindowsSdkPackageVersion>10.0.22621.57</WindowsSdkPackageVersion>
-    <TargetFramework>net9.0-windows10.0.22621.0</TargetFramework>
+    <WindowsPackageType>MSIX</WindowsPackageType>
+    <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
     <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
@@ -28,10 +28,6 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
   
-  <ItemGroup>
-    <Content Include="Mappings\agda.mapping.json" />
-    <Content Include="Mappings\html.mapping.json" />
-  </ItemGroup>
 
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
@@ -55,6 +51,10 @@
     <PackageReference Include="Shmuelie.WinRTServer" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\UnicodeInputCore\UnicodeInput.Core.csproj" />
+  </ItemGroup>
+
   <!--
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
     Explorer "Package and Publish" context menu entry to be enabled for this project even if
@@ -72,6 +72,6 @@
     <WarningsNotAsErrors>IL2081</WarningsNotAsErrors>
 
     <PublishTrimmed>true</PublishTrimmed>
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishSingleFile Condition="'$(WindowsPackageType)' == 'None'">true</PublishSingleFile>
   </PropertyGroup>
 </Project>

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using UnicodeInput.Core;
+
 namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
 
 [TestClass]

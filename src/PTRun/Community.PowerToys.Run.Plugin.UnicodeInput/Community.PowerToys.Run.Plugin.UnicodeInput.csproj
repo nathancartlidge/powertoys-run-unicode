@@ -10,10 +10,11 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <Platforms>x64;ARM64</Platforms>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <!-- x64 libraries-->
-  <ItemGroup Condition="'$(Platform)' == 'x64'">
+  <ItemGroup Condition="'$(Platform)' == 'x64' OR '$(Platform)' == 'AnyCPU'">
     <Reference Include="PowerToys.Common.UI">
       <Private>False</Private>
       <HintPath>..\libs\x64\PowerToys.Common.UI.dll</HintPath>
@@ -58,6 +59,12 @@
       <Private>False</Private>
       <HintPath>..\libs\ARM64\Wox.Plugin.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\UnicodeInputCore\UnicodeInput.Core.csproj">
+      <Private>true</Private>
+    </ProjectReference>
   </ItemGroup>
   
   <ItemGroup>

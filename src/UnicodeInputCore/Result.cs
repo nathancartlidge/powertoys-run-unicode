@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 
-namespace UnicodeInputExtension.Core;
+namespace UnicodeInput.Core;
 
 public record struct Result(
     string UserInput,

@@ -2,13 +2,15 @@ using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wox.Plugin;
 
+using UnicodeInput.Core;
+
 namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
 
 [TestClass]
 [TestSubject(typeof(LookupGroup))]
 public class LookupGroupTests
 {
-    private const string Directory = @"..\..\..\..\Community.PowerToys.Run.Plugin.UnicodeInput";
+    private const string Directory = ".";
     private readonly FileLoader _loader = new(Directory);
     private readonly LookupGroup _group;
     
@@ -35,7 +37,7 @@ public class LookupGroupTests
     public void TestGetLookupSources()
     {
         Assert.AreEqual("\u25e2\u26ca", _group.GetLookupSources("alpha", "α"));
-        Assert.AreEqual("\u25e2", _group.GetLookupSources("---", "─"));
-        Assert.AreEqual("\u25e2", _group.GetLookupSources("---", "│"));
+        Assert.AreEqual("\u26ca", _group.GetLookupSources("---", "─"));
+        Assert.AreEqual("\u26ca", _group.GetLookupSources("---", "│"));
     }
 }

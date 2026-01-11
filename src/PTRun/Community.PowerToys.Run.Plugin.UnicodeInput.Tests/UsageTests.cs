@@ -5,15 +5,17 @@ using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wox.Plugin;
 
+using UnicodeInput.Core;
+
 namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
 
 [TestClass]
 [TestSubject(typeof(Main))]
 public class UsageTests
 {
-    private const string Directory = @"..\..\..\..\Community.PowerToys.Run.Plugin.UnicodeInput";
+    private const string Directory = ".";
 
-    private static List<Tuple<string, string>> GetTitles(List<Result> results)
+    private static List<Tuple<string, string>> GetTitles(List<Wox.Plugin.Result> results)
     {
         return results
             .Select(result => result.Title) // get the title from each result

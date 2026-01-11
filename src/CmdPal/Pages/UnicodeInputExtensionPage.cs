@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CommandPalette.Extensions.Toolkit;
-using UnicodeInputExtension.Core;
+using UnicodeInput.Core;
 using UnicodeInputExtension.Helpers;
 
 namespace UnicodeInputExtension.Pages;

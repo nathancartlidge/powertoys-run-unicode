@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace UnicodeInputExtension.Core;
+namespace UnicodeInput.Core;
 
 public class HtmlLookup(Dictionary<string, string> mappings) : BaseLookup(mappings)
 {

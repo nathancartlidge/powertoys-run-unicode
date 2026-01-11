@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace UnicodeInputExtension.Core;
+namespace UnicodeInput.Core;
 
 public class BaseLookup
 {

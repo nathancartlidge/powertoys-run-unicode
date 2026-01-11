@@ -1,13 +1,15 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using UnicodeInput.Core;
+
 namespace Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
 
 [TestClass]
 [TestSubject(typeof(BaseLookup))]
 public class PartialLookupTest
 {
-    private readonly FileLoader _loader = new(@"..\..\..\..\Community.PowerToys.Run.Plugin.UnicodeInput");
+    private readonly FileLoader _loader = new(".");
     private readonly BaseLookup _lookup;
 
     public PartialLookupTest()

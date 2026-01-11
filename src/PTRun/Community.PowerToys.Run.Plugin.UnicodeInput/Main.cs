@@ -1,11 +1,15 @@
 ﻿using ManagedCommon;
+using System.IO;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using Wox.Plugin;
-using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Wox.Infrastructure;
 using Wox.Plugin.Common;
 using Microsoft.PowerToys.Settings.UI.Library;
+using UnicodeInput.Core;
+using Result = Wox.Plugin.Result;
 
 namespace Community.PowerToys.Run.Plugin.UnicodeInput;
 
@@ -13,7 +17,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
 {
     private string IconPath { get; set; }
 
-    private LookupGroup _lookups;
+    private Lookup _lookup;
     private readonly Typer _typer = new();
     
     private PluginInitContext Context { get; set; }
@@ -31,15 +35,29 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     private bool _doTyping;
     private int _typeDelay;
 
+    static Main()
+    {
+        AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())!.Resolving += (context, assemblyName) =>
+        {
+            if (assemblyName.Name != "UnicodeInput.Core") return null;
+
+            var assemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, $"{assemblyName.Name}.dll");
+            if (File.Exists(assemblyPath))
+            {
+                return context.LoadFromAssemblyPath(assemblyPath);
+            }
+            return null;
+        };
+    }
+
     public Main()
     {
-        _lookups = null;
+        _lookup = new Lookup();
     }
     
     public Main(string directory)
     {
-        var loader = new FileLoader(directory);
-        _lookups = new LookupGroup(loader.Mappings, loader.AgdaMapping, loader.HtmlMapping);
+        _lookup = new Lookup(directory, MaxResults);
     }
     
     // ReSharper disable once UnusedMember.Global
@@ -86,7 +104,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     // -----------------------------------------------------------------------------------------------------------------
     
     private Result MakeResult(string userInput, int? resultIndex, IReadOnlyList<string> choices,
-                              IReadOnlyList<char> validNextChars, int score, bool isHtml = false)
+                              IReadOnlyList<char> validNextChars, int score, string sources)
     {
         var titleStringBuilder = new StringBuilder();
         var subtitleStringBuilder = new StringBuilder();
@@ -116,8 +134,6 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         titleStringBuilder.Append(" \u2192 ");
         titleStringBuilder.Append(choices[0]);
         
-        // get the source of this symbol
-        var sources = _lookups.GetLookupSources(userInput, choices[0]);
         if (sources.Length != 0)
         {
             subtitleStringBuilder.Append(sources + ' ');
@@ -166,6 +182,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
     {
         if (selectedResult?.ContextData is null) return [];
         var symbol = selectedResult.ContextData.ToString()!;
+        if (string.IsNullOrEmpty(symbol)) return [];
         var choiceChar = char.ConvertToUtf32(symbol, 0);
 
         ContextMenuResult remainingOption;
@@ -262,11 +279,6 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         return sb.ToString();
     }
     
-    [GeneratedRegex(@"^(.*?)(\d+)$")]
-    private static partial Regex NumberMatcherRegex();
-
-    private readonly Regex _numberMatcher = NumberMatcherRegex();
-
     private static string _subscriptNumber(int i)
     {
         var output = new StringBuilder();
@@ -279,265 +291,18 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
 
     public List<Result> Query(Query query)
     {
-        if (_lookups == null)
-        {
-            // we cannot function if lookups failed
-            // todo: just in case, maybe make this an explicit error message?
-            return [];
-        }
+        var results = _lookup.Query(query.RawQuery, query.ActionKeyword);
         
-        // Clean up the raw query by discarding the keyword and trimming
-        var cleanedQuery = string.IsNullOrEmpty(query.ActionKeyword)
-            ? query.RawQuery.Trim() // no keyword - just trim
-            : query.RawQuery[query.ActionKeyword.Length..].Trim();
-
-        return cleanedQuery.All(c => c > 127) ?
-            // exclusively non-ascii characters in the query - do reverse matching
-            GetAsciiPrompt(cleanedQuery) :
-            // some ascii characters - do forwards matching
-            GetUnicodeSymbol(cleanedQuery);
-    }
-
-    private List<Result> GetAsciiPrompt(string query)
-    {
-        // Exact matching - agda has a key, we provide that key
-        var matches =  _lookups.ReverseMatch(query)
-            .Take(MaxResults)
-            .ToList();
-
-        if (matches.Count == 0)
-        {
-            return [];
-        }
-
-        return matches
-            .Select(
-                match => MakeResult(
-                    userInput: match,
-                    resultIndex: null,
-                    choices: [query],
-                    validNextChars: [],
-                    score: 1
-                )
-            )
-            .ToList();
-    }
-
-    private static List<string> AddPrefix(List<string> results, string prefix)
-    {
-        return results.Select(result => prefix + result).ToList();
-    }
-    
-    private List<Result> GetUnicodeSymbol(string query)
-    {
-        var partialResult = "";
-        var partialResultPrefix = "";
-        List<Result> results = [];
-        
-        // for numeric matching
-        var numberKey = "";
-        var numberIndex = -1;
-        var numberMatches = new List<string>();
-
-        // cleanup the little numbers where appropriate? (replace them with their big equivalents)
-        query = string.Join(null, query.Select(c => (char) (c is >= '₀' and <= '₉' ? c - 8272 : c)));
-        
-        // clean up the little arrow, if present
-        var firstSegment = query.Split('\u2192').First().Trim();
-        if (firstSegment.Length > 0)
-        {
-            query = firstSegment;
-        }
-        
-        // Exact matching - agda has a key, we provide that key
-        var exactMatches = _lookups.ExactMatches(query);
-        
-        // multiple-lookup implementation (\lambda\_2 → λ₂ or \lambda\alpha → λα)
-        // if there are no exact matches AND there is a backslash within the string
-        // todo: can we fetch a user-defined trigger shortcut?
-        while (exactMatches.Count == 0 && (query.Contains('\\') || query.Contains(' ') || query.Contains('_') || query.Contains('^')))
-        {
-            // 1. find the longest substring that is a word
-            var longestPartialMatch = _lookups.LongestPartialMatch(query);
-            var matchedCharacter = _lookups.Get(longestPartialMatch);
-
-            // 2a. if there is not a match, break out of the loop
-            if (longestPartialMatch == "" || matchedCharacter == null || longestPartialMatch.Length >= query.Length)
-                break;
-            
-            // 2b. we want to restrict the possible values for the next character to our approved set
-            //     (' ', '\', '_', '^') or a number
-            var nextCharacter = query[longestPartialMatch.Length];
-            if (nextCharacter is not (' ' or '\\' or '_' or '^'))
-            {
-                // support numeric inputs here
-                if (matchedCharacter.Contains(' ') && nextCharacter is >= '0' and <= '9')
-                {
-                    // note that this is slightly different behaviour to the other implementation later down!
-                    // todo: review both
-                    var numberIndexString = string.Join(null,
-                        // get the longest possible consecutive string of digits from the string
-                        query[longestPartialMatch.Length..]
-                            .TakeWhile(c => c is >= '0' and <= '9')
-                    );
-                    numberIndex = int.Parse(numberIndexString) - 1;
-
-                    var matchedCharacterSplit = matchedCharacter.Split(' ');
-                    if (numberIndex >= 0 && numberIndex < matchedCharacterSplit.Length)
-                    {
-                        matchedCharacter = matchedCharacterSplit[numberIndex];
-                        longestPartialMatch += _subscriptNumber(numberIndex + 1);
-                    }
-                    else break;
-                }
-                else break;
-            } else if (matchedCharacter.Contains(' '))
-                // handle multiple character matches (eg \l), even when no index provided (take the first one)
-                matchedCharacter = matchedCharacter.Split(' ').First();
-            
-            // todo: handle unicode numerics (eg '\u03B1')
-            
-            // we only reach this point if we have a match
-            // 3a. prepend this matched character to all responses
-            partialResult += matchedCharacter;
-            partialResultPrefix += string.Concat(longestPartialMatch, ' ');
-            if (partialResultPrefix.Length > 12)
-                partialResultPrefix = string.Concat(
-                    "⋯",
-                    partialResultPrefix.AsSpan(
-                        partialResultPrefix.Length - 10,
-                        10
-                    )
-                );
-            
-            // 3b. remove that part of the word from the query, so it doesn't interfere with other 
-            query = query[longestPartialMatch.Length..].Trim();
-            query = query.StartsWith("\\") ? query[1..] : query;
-            
-            // 4. loop
-            // Exact matching - agda has a key, we provide that key
-            exactMatches = _lookups.ExactMatches(query);
-        }
-        
-        // partial matching
-        var (validChars, partialMatches) = _lookups.PartialMatches(query);
-
-        // In the case where we have nothing useful to add (e == 0 and p == 0), we should avoid polluting the list
-        //  of results (e == 0 and p == 0)
-        // In the case where there is only one match, there is no point attempting to show the 'No match found yet!'
-        //  line - we know what the match is going to be! This is only the case when there are no exact matches and
-        //  exactly one partial match, so we skip this step if both those conditions are met (e == 0 and p == 1)
-        // These two conditions combine to give e == 0 and p <= 1. By inverting them, we get e != 0 || p > 1
-        if (exactMatches.Count != 0 || partialMatches.Count > 1)
-            results.Add(
-                item: MakeResult(
-                    userInput:   partialResultPrefix + query,
-                    resultIndex: null,
-                    choices:  AddPrefix(exactMatches, partialResult),
-                    validNextChars: validChars,
-                    score:    10
-                )
-            );   
-
-        // HTML / Unicode Numerics
-        if (query.StartsWith("&#") || query.StartsWith('#') || query.StartsWith('u') || query.StartsWith("U+"))
-        {
-            var htmlMatch = HtmlLookup.NumericMatch(query.Replace("U+", "#x").Replace("u", "#x"));
-            if (htmlMatch != null)
-                results.Add(
-                    item: MakeResult(
-                        userInput:   partialResultPrefix + query,
-                        resultIndex: null,
-                        choices:  [partialResult + htmlMatch],
-                        validNextChars: [],
-                        score:    1,
-                        isHtml:   true
-                    )
-                );
-        }
-
-        // Number-indexed matching support
-        var match = _numberMatcher.Match(query);
-        if (match.Success)
-        {
-            numberKey = match.Groups[1].Value;
-            numberIndex = int.Parse(match.Groups[2].Value) - 1;
-            numberMatches = _lookups.ExactMatches(numberKey);
-            if (0 <= numberIndex && numberIndex < numberMatches.Count)
-            {
-                results.Add(
-                    item: MakeResult(
-                        userInput:      partialResultPrefix + numberKey,
-                        resultIndex:    numberIndex,
-                        choices:        [partialResult + numberMatches[numberIndex]],
-                        validNextChars: [],
-                        score:    1
-                    )
-                );
-            }
-        }
-        
-        // Partial Match candidates (to fill remaining slots)
-        var remainingSlots = int.Max(0, MaxResults - results.Count);
-        if (remainingSlots <= 0) return results; // early stopping
-
-        results.AddRange(
-            collection: partialMatches
-                .Take(remainingSlots)
-                .Select(s =>
-                    MakeResult(
-                        userInput:   partialResultPrefix + s,
-                        resultIndex: null,
-                        choices:  AddPrefix(
-                            _lookups.ExactMatches(s),
-                            partialResult
-                        ),
-                        validNextChars: [],
-                        score:    partialMatches.Count == 1 ? 0 : -1
-                    )
-                )
-        );
-
-        // Number-indexed alternatives (to fill remaining slots)
-        remainingSlots = int.Max(0, MaxResults - results.Count);
-        if (remainingSlots <= 0) return results; // early stopping
-            
-        int jStart;
-        string searchKey;
-        List<string> options;
-
-        // which number should we start from?
-        // - if our search was for a particular number, show subsequent options
-        // - otherwise, start from 1
-        // - if neither of these conditions apply, just return
-        if (match.Success && numberIndex != 0 && numberIndex < numberMatches.Count)
-        {
-            options = numberMatches[(numberIndex + 1)..];
-            searchKey = numberKey;
-            jStart = numberIndex + 1;
-        }
-        else if (exactMatches.Count > 1)
-        {
-            options = exactMatches[1..];
-            searchKey = query;
-            jStart = 1;
-        }
-        else return results;
-            
-        for (var j = 0; j < int.Min(remainingSlots, options.Count); j++)
-        {
-            results.Add(
-                item: MakeResult(
-                    userInput:      partialResultPrefix + searchKey,
-                    resultIndex:    j + jStart,
-                    choices:        [partialResult + options[j]],
-                    validNextChars: [],
-                    score:    -1
-                )
-            );
-        }
-
-        return results;
+        return results.Select(r => 
+           MakeResult(
+               r.UserInput, 
+               r.ResultIndex, 
+               r.Choices, 
+               r.ValidNextChars, 
+               r.Score, 
+               r.Sources
+           )
+        ).ToList();
     }
 
     public void Init(PluginInitContext context)
@@ -546,8 +311,7 @@ public partial class Main : IPlugin, IContextMenu, ISettingProvider
         Context.API.ThemeChanged += OnThemeChanged;
         UpdateIconPath(Context.API.GetCurrentTheme());
 
-        var loader = new FileLoader(Context.CurrentPluginMetadata.PluginDirectory);
-        _lookups = new LookupGroup(loader.Mappings, loader.AgdaMapping, loader.HtmlMapping);
+        _lookup = new Lookup(Context.CurrentPluginMetadata.PluginDirectory, MaxResults);
     }
 
     private void UpdateIconPath(Theme theme)

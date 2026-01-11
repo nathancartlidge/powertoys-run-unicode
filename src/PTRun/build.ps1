@@ -1,0 +1,49 @@
+$ErrorActionPreference = "Stop";
+
+echo "Building...";
+
+cd Community.PowerToys.Run.Plugin.UnicodeInput.Tests;
+dotnet restore;
+dotnet test;
+cd ../Community.PowerToys.Run.Plugin.UnicodeInput;
+dotnet build --configuration RELEASE /p:Platform=x64 /p:EnableWindowsTargeting=true;
+
+if (Test-Path "~\AppData\Local\Microsoft\PowerToys\PowerToys Run") {
+    echo "Testing if PowerToys is running...";
+    $pt = Get-Process "PowerToys" -ea SilentlyContinue;
+    if ($pt) {
+        echo "PowerToys is running, killing it";
+        sudo pwsh -cwa "Stop-Process -Name PowerToys";
+        sleep 2;
+    }
+    while ($pt) {
+        echo "PowerToys is still running, killing it again";
+        sudo pwsh -cwa "Stop-Process -Name PowerToys";
+        sleep 3;
+        $pt = Get-Process "PowerToys" -ea SilentlyContinue;
+    }
+
+    echo "Installing plugin...";
+    if (Test-Path "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput") {
+        echo "Deleting existing files";
+        rm -Recurse "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+    }
+    mkdir "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+    
+    cp -Recurse "bin\x64\Release\*.dll"       "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+    cp -Recurse "bin\x64\Release\*.json"      "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+    cp -Recurse "bin\x64\Release\images"      "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+    cp          "bin\x64\Release\plugin.json" "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+    
+    cp "../../UnicodeInputCore/Mappings/html.mapping.json" "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+    cp "../../UnicodeInputCore/Mappings/agda.mapping.json" "~\AppData\Local\Microsoft\PowerToys\PowerToys Run\Plugins\UnicodeInput";
+
+    Start-Sleep -Milliseconds 100
+    
+    echo "Install Complete, launching PowerToys";
+    ii "~\AppData\Local\PowerToys\PowerToys.exe";
+} else {
+    echo "Unable to find PowerToys installation - you will need to modify this script";
+}
+
+cd ..;
